@@ -1,0 +1,64 @@
+Bugs:
+
+*FIXED* On the field you can go back and advance to the next level. 
+~On graveyard if you interacted with open grave and after took a shovel grave becomes buried
+
+little details to do:
+
+*DONE* add cool down to dialogs
+
+
+Plans:
+
+Need to rewrite some things, so we can travel throgh two parts of our basement infinity amount of times and also be able to save all data on those levels.
+
+For basement yura: When levers puzzle is solved the frog spits the code for chest after being electricuted or explodes/ !!!
+
+
+
+Oct 2: Did the smooth movement of Player
+Oct 3: Working on collision, making progress. Guys Drawing new map '-'
+Oct 6: Polishing the player`s movement, added a bunch of bugs, fixed some, a lot left. '-'
+Oct 7: Fixed all bugs for now. In plans do new playermodel and add direction of sight. >:D
+Oct 8: IDK | Need to start work on scripts for appartment level and still need to redo Player.
+Oct 9: redid question interaction and now have rare bug that I dont know how to fix yet. need to contimue work on scripts
+Oct 9(Home): Bug fixed | New bug added now dialogue happening twice instead of once{JOPA} | ALL IntObj now *2. Did a little script progress.
+Oct 14: drawed prototype of player model, guys making progress in drawing new location. need to do direction for player
+Oct 14(Home) : ALL DAY SPENT. | bug fixed, new interaction method (the most comfortable one), player can look in different directions, little work left on scripts for appartment level.
+Oct 15: Finishing up scripts for appartment level.
+Oct 16: finished up appartment scripts mostly (need to fix new bug and thats it), guys finished their maps, fixed bug on graveyard.
+Oct 17: fixing bug on graveyard, need to rewrite a lot of stuff
+Oct 17: Fixed that bug. ( kinda too many bugs lately), Ready to add new map!..
+Oct 21: 2 days in row going to the auditorium.....
+Oct 22: Tried to add basement map.
+Oct 23: Added map to the game, but a little incorrectly but thats not a big deal. A lot of work ahead (0~0)...
+Oct 24: fixed map a little, started enhancing smallInt func so more visual cool mechanics, Yura fixing Stas`s map. ;D
+Weekends Oct 25-26: Learning C#
+Oct 27: Did very optimized, super smart and gorgeous thing that prevents player to exit through the wrong side.
+Oct 27 (Home): Added levels, now need to work on them untill they are playable.
+Oct 28: made thing that I can go back and forth between basement levels, fixed very rare bug that brakes the game. k
+Oct 29: Made going back and forth in basement better, started work on scripts. ....
+Oct 30: picture appears when interact with chest, talked about scenario of basement level. 
+Oct 31: Player can now go under tiles, for example pipes
+Oct 31(Home): Drawed Lock yo
+Nov 1: Was very lazy today, started work on adding functionality on codelock ended up learning how to find area of triangle in coordinate geometry xd.
+Nov 3: Still fucking with triangles.
+Nov 4: Finished triangles and button for lock. :D
+Nov 5: polished the lock. Kids from middle school were visiting our school and looking at our work. 
+Nov 6: did levers in second basement room.
+Nov 7(home): trying to light up lanterns when levers is pulled.
+Nov 10: fixed bug on graveyard, drawed gravestone
+Nov 11: Doing levers and lamps puzzle still
+Nov 12: still same puzzle made progress: I can light up one bulb but mixing it with other bulbs breaks everything.
+Nov 13: finished puzzle with levers, adding new class: effect , to explode the frog and it drops the code for codelock.
+Nov 17(3 days no work D:< ): Brainstormed and wrote a little of new Effect class. Almost finished gravestone drawing (working very not regulary on it).
+Nov 18: Fixed some code with lamps still working on effects.
+Nov 19: progressing with adding effect class still fixing bugs with lamp puzzle, added new bug which eats all RAM in 1 minute after puzzle completed. D:
+Nov 20: Was able to run animation will modificate Effect class further more. I exploded the frog. 
+Nov 21: first good working version of Effect added, moved note with code for codelock so it look like frog droped it, but note lefts trail for some reason. 
+Nov 25: kinematics
+Nov 27: kinematics
+Nov 28: dont ever try to do kinematics in python
+Dec 1: trying to make animation neater, added textures that guys drawed. Will do kinematics later.
+Dec 2: Exploded the frog
+Dec 3: Note wirh code now apear beneath frog when it exploded
