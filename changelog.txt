@@ -64,3 +64,4 @@ Dec 2: Exploded the frog
 Dec 3: Note wirh code now apear beneath frog when it exploded
 Dec 4-6: Learning git and github
 Dec 7: Trying to add collectable that goes into inventory when clicked on
+Dec 8: Can loot the key from the chest.

@@ -724,7 +724,7 @@ class Inventory():
 	def update_inventory(self):
 		# print("items =",self.collectables.items())
 		for name, collectable in self.collectables.items():
-			print("collectable =", collectable)
+			# print("collectable =", collectable)
 			if collectable.amount != 0 and collectable not in self.inventory_panel:
 				self.inventory_panel.insert(self.inventory_panel.index(None), collectable)
 				self.inventory_panel.remove(None)
@@ -805,7 +805,8 @@ class ScreenCollectable():
 
 	def reset(self):
 		if self.reached_max == False and self.active: 
-			screen.blit(screen,self.rect)
+			screen.blit(self.image,(self.rect.x,self.rect.y))
+			print(f"Collectable rect: {self.rect}")
 			
 	def collect_when_clicked(self):
 		if not self.active:
@@ -1831,6 +1832,22 @@ def fps_show():
 	fps_lenght = 150
 	print_text(screen,f"FPS: {fps}", "Comic Sans",24,screen.get_width() - fps_lenght,0)
 
+def screencollectables_cycle(name = None,activate = None):
+	
+	for collectable in screenCollectables:
+			if name != None and activate != None:
+
+				if collectable.name == name:
+					collectable.active = activate
+					print(f"Collectable {collectable.name} activated")
+
+			if collectable.active:
+				collectable.reset()
+				collectable.collect_when_clicked()
+
+			if collectable.reached_max:
+				screenCollectables.remove(collectable)
+
 # initializing something for map_blit():
 
 lastlevel = None   # We already have player.last_level but this thing here to initialize things at the start of each level.
@@ -2424,8 +2441,10 @@ def map_blit(floor_only = None):
 										smol.index = "open_chest"
 
 										# adding key in chest that picks up when you click on it
-										x,y = smol.get_leftTopCords()
-										screenCollectables.append(ScreenCollectable(x+(smol.w/2) - 50, y + (smol.h/2) + 50, 100, 100, "game pics/key.png","key"))
+										x,y = smol.rect.x , smol.rect.y
+										
+
+										screenCollectables.append(ScreenCollectable(x+(smol.w/2) - 200, y + (smol.h/2) + 350, 100, 100, "game pics/key.png","key"))
 
 										interact = False
 
@@ -2438,26 +2457,19 @@ def map_blit(floor_only = None):
 					interact = smol.interaction()
 
 					while interact:
-						for collectable in screenCollectables:
-							collectable.active = True						
 						
 						smol.reset_image_big()
 
+						screencollectables_cycle("key",True)				
 
 						for event in pg.event.get(): # Cycles man
 							if event.type == pg.QUIT:
-								pg.quit		
-					
+								pg.quit()	
+
+						if pg.key.get_pressed()[pg.K_f]:
+							interact = False
+						
 						pg.display.flip()
-					
-		for collectable in screenCollectables:
-			if collectable.active:
-				collectable.reset()
-				collectable.collect_when_clicked()
-
-			if collectable.reached_max:
-				screenCollectables.remove(collectable)
-
 
 		for thing in item:
 			thing.reset()
