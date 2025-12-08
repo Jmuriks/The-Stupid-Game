@@ -62,3 +62,5 @@ Nov 28: dont ever try to do kinematics in python
 Dec 1: trying to make animation neater, added textures that guys drawed. Will do kinematics later.
 Dec 2: Exploded the frog
 Dec 3: Note wirh code now apear beneath frog when it exploded
+Dec 4-6: Learning git and github
+Dec 7: Trying to add collectable that goes into inventory when clicked on
