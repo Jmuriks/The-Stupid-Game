@@ -1076,12 +1076,12 @@ basement_stasa = [
 	'1111111111111111111111111',#1
 	'1111111111111111111111111',#2
 	'1111111111111111111111111',#3
-	'11100000000010000c0000111',#4
-	'1110000000001000000000111',#5
-	'1110000000001000000000111',#6
+	'11100000000010100c0011111',#4
+	'1110000000001000000011111',#5
+	'111000000000100000000b111',#6
 	'1110000000001000000000111',#7
 	'1110000000001000000000111',#8
-	'1110000000001000000000000',#9
+	'1110000000001100000000000',#9
 	'1110000000001000000000000',#10
 	'1110000000001000000000111',#11
 	'1110000000001000000000111',#12
@@ -1117,6 +1117,8 @@ basement_yura = [
 	"11111111111111111111"
 ]
 
+# endregion maps
+
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura]
 startLevel = 5
 choosenLevel = levels[startLevel]
@@ -1138,7 +1140,7 @@ map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png")
 
 togo_levels = None
 
-# endregion maps
+
 
 def map(kostil = None, up = None):
 	global tales, screen, map_app
@@ -1375,9 +1377,9 @@ def map(kostil = None, up = None):
 				player.set_direction(90)
 			player.allowed_exits = [False,False,False,True]
 
-
-
 			togo_levels = None
+
+			screen_w, screen_h = screen.get_width() , screen.get_height()
 
 			print("map | CL = basement stasa")
 
@@ -1395,6 +1397,10 @@ def map(kostil = None, up = None):
 						intObj.append(InteractionObj("Rover",["Closed..."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False,"dooor"))
 					if basement_stasa[i][g] == "c":
 						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/zzzamok.png",tales*g,tales*i,False, "chest"))
+					if basement_stasa[i][g] == "b":
+						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/box_empty.png",g*tales,i*tales,False,index = "box",h = 800))
+						screenCollectables.append(ScreenCollectable(screen_w/2 - 100,screen_h/2 - 100,200,200,"game pics/tape.png","tape"))
+						
 
 		if choosenLevel == basement_yura:
 
@@ -2470,6 +2476,27 @@ def map_blit(floor_only = None):
 							interact = False
 						
 						pg.display.flip()
+				
+				if smol.index == "box":
+					interact = smol.interaction()
+
+					while interact:
+
+						for event in pg.event.get():
+							if event.type == pg.QUIT:
+								pg.quit()
+						
+						if pg.key.get_pressed()[pg.K_f]:
+							interact = False
+
+						smol.reset_image_big()
+
+						screencollectables_cycle("tape",True)						
+
+						pg.display.flip()
+						
+
+
 
 		for thing in item:
 			thing.reset()
