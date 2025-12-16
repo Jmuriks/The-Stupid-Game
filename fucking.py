@@ -17,14 +17,14 @@ Chickibamboni=pg.image.load("game pics/CHIKIBAMBONI(O.M.).png")
 class GameObject():
     def __init__(self,x,y,w,h,speed,image_route,index = None,layer = 0):
         if image_route != None:
-            
+
             self.image = pg.transform.scale(pg.image.load(image_route),(w,h))
             self.rect= self.image.get_rect()
             self.rect.x=x
-            self.rect.y=y   
+            self.rect.y=y
 
         else:
-            
+
             self.image = None
             self.rect = pg.Rect(x,y,w,h)
             self.rect.x = x
@@ -60,9 +60,9 @@ class GameObject():
 
         new_x = self.rect.x + goingx * tales
         new_y = self.rect.y + goingy * tales
-        
+
         new_rect = pg.Rect(new_x, new_y,40,40)
-        
+
         if not check_collisions:
             self.target = (new_x, new_y)
             return
@@ -94,9 +94,9 @@ class GameObject():
         collide_smalint3 = any(new_rect.colliderect(smint.rect) for smint in smallInt if smint.int_mode == 3)
         collide_walls = any(new_rect.colliderect(w.rect) for w in walls )
 
-        if not collide_walls and not collide_intobj2 and not collide_intobj3 and not collide_smalint2 and not collide_smalint3 and not canceled: 
+        if not collide_walls and not collide_intobj2 and not collide_intobj3 and not collide_smalint2 and not collide_smalint3 and not canceled:
             self.target = (new_x, new_y)
-        
+
     def move_to_target(self):
             final_x, final_y = self.target
             if final_x < self.rect.x:
@@ -118,11 +118,9 @@ class GameObject():
                 self.rect.y += self.speed
                 if self.rect.y >= final_y:
                     self.rect.y = final_y
-                    self.target = None # Обнуляем цель после движения    
-        
+                    self.target = None # Обнуляем цель после движения
 
-
-# BEZHOZNIE FUNCTIIe
+# region functions
 
 def check():
     if pg.key.get_pressed()[pg.K_c]:
@@ -139,10 +137,10 @@ def print_text(surface,text,font,size,x,y, colour = "white"):
     fontt = pg.font.SysFont(font,size)
     text = fontt.render(text, True, colour)
 
-    surface.blit(text, (x,y))        
+    surface.blit(text, (x,y))
 
 def dialog_menu(dialogue, line_lenght,name,question):
-    
+
     w =screen.get_width()
     h =screen.get_height()
     page = 0
@@ -152,7 +150,7 @@ def dialog_menu(dialogue, line_lenght,name,question):
     #print(f"[DEBUG] name = {name} | type = {type(name)}")
     name_out = fontName.render(name, True ,"white")
     last = 0
-    
+
     # Relative sizes and positions
     dialog_x = w * 0.0625
     dialog_y = h * 0.65
@@ -166,13 +164,13 @@ def dialog_menu(dialogue, line_lenght,name,question):
     name_box_width = w * 0.25
     name_box_height = h * 0.075
 
-    
+
     interaction = True
-    
+
     while interaction:
 
         for event in pg.event.get():    # чекаем на евент закрытия игры. <3
-            if event.type == pg.QUIT:   
+            if event.type == pg.QUIT:
                 pg.quit()               # Была ошибка что цикл не запускался потому что не было евентов. решение: не вставлять весь код в евенты
 
 
@@ -181,12 +179,12 @@ def dialog_menu(dialogue, line_lenght,name,question):
         # Creating dialog surface and making it transparent
         dialog_surface = pg.Surface((w,h),pg.SRCALPHA)
         dialog_surface.fill((0,0,0,0))
-        
+
         # Dialogue Box
         pg.draw.rect(dialog_surface, (15, 23, 42), [dialog_x, dialog_y, dialog_width, dialog_height])
         # Name Box
         pg.draw.rect(dialog_surface, ("gray"), [name_box_x, name_box_y, name_box_width, name_box_height])
-        
+
         #Divide dialogue in several segments
         page_text = dialogue[page]
         strings = []
@@ -204,8 +202,8 @@ def dialog_menu(dialogue, line_lenght,name,question):
 
             strings.append(page_text[i:end].strip())
             i = end
-        
-        
+
+
         line1=fontTalk.render(strings[0], True, "white") # What is person saying
         if len(strings)>1:
             line2=fontTalk.render(strings[1], True, "white")
@@ -215,7 +213,7 @@ def dialog_menu(dialogue, line_lenght,name,question):
             line4=fontTalk.render(strings[3], True, "white")
         if len(strings)>4:
             line5=fontTalk.render(strings[4], True, "white")
-    
+
         dialog_surface.blit(name_out, (name_box_x, name_box_y))
         dialog_surface.blit(line1, (dialog_x, dialog_y))
         if len(strings)>1:
@@ -228,10 +226,10 @@ def dialog_menu(dialogue, line_lenght,name,question):
             dialog_surface.blit(line5, (dialog_x, dialog_y+200))
 
         if now - last >=250:
-            
+
             #print("last =",last)
             if pg.key.get_pressed()[pg.K_f]:
-                #screen.blit(dialogue[i+1], (w/2 - 700, h/2 + 150)) 
+                #screen.blit(dialogue[i+1], (w/2 - 700, h/2 + 150))
                 if page < len(dialogue) - 1:
                     #print("dialogue =", len(dialogue))
                     page+=1
@@ -240,23 +238,23 @@ def dialog_menu(dialogue, line_lenght,name,question):
 
                 else:
                     interaction = False
-            
+
             if page == len(dialogue) - 1:
                 if question == True:
-                    
+
                     print_text(dialog_surface,"Y = yes, N = No","Comic Sans",40,w*0.39375, h*0.9)
 
                     if pg.key.get_pressed()[pg.K_y]:
-                        
-                        
-                        return True 
+
+
+                        return True
 
                     if pg.key.get_pressed()[pg.K_n]:
-                        
-                        
+
+
                         return False
 
-        
+
         screen.blit(dialog_surface,(0,0))
         pg.display.flip()
 
@@ -270,7 +268,7 @@ def triangle_area(tr1,tr2,tr3):
     trig_area = abs(tr1[0] * (tr2[1]-tr3[1]) +
                     tr2[0] * (tr3[1]-tr1[1]) +
                     tr3[0] * (tr1[1]-tr2[1])) / 2
-    
+
     return trig_area
 
 def point_in_triangle(tr1,tr2,tr3,point):
@@ -293,31 +291,32 @@ def point_in_circle(point_x,point_y,center_x,center_y,radius):
 
     return distance_square <= radius**2
 
+# endregion Homeless functions
 
-# Damn Classes
+# region CLASSES
 
 class Player(GameObject):
     def __init__(self, x, y, w, h, speed, image,):
         super().__init__(x, y, w, h, speed, image)
-        
+
         self.direction = 0
         self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction)
         self.target = None
         self.allowed_exits = [True,True,True,True]
         self.current_level = None
         self.last_level = None
-        
+
     def in_front(self,obj_rect):
-        
+
         if self.direction == 0: # E
             dir_rect = pg.Rect(self.rect.x+tales, self.rect.y,tales,tales)
         if self.direction == 90: # N
-            dir_rect = pg.Rect(self.rect.x, self.rect.y - tales,tales,tales)        
+            dir_rect = pg.Rect(self.rect.x, self.rect.y - tales,tales,tales)
         if self.direction == 180: # W
             dir_rect = pg.Rect(self.rect.x-tales, self.rect.y,tales,tales)
         if self.direction == 270: # S
             dir_rect = pg.Rect(self.rect.x, self.rect.y + tales,tales,tales)
-        
+
         if dir_rect.colliderect(obj_rect):
             return True
         else:
@@ -333,8 +332,8 @@ class Player(GameObject):
 
             # print(f"in_dir + dir_change = dir_final: {self.direction} + {dir_change} = {dir_final}")
 
-            self.direction = self.direction + dir_change 
-            
+            self.direction = self.direction + dir_change
+
 
             self.image = pg.transform.rotate(self.image,dir_change)
 
@@ -344,10 +343,10 @@ class Player(GameObject):
 
         new_x = self.rect.x + goingx * tales
         new_y = self.rect.y + goingy * tales
-        
+
         new_rect = pg.Rect(new_x, new_y,40,40)
-        
-    
+
+
         outside_top = new_y < 0
         outside_bottom = new_y >= screen.get_height()
         outside_right = new_x >= screen.get_width()
@@ -375,9 +374,9 @@ class Player(GameObject):
         collide_smalint3 = any(new_rect.colliderect(smint.rect) for smint in smallInt if smint.int_mode == 3)
         collide_walls = any(new_rect.colliderect(w.rect) for w in walls )
 
-        if not collide_walls and not collide_intobj2 and not collide_intobj3 and not collide_smalint2 and not collide_smalint3 and not canceled: 
+        if not collide_walls and not collide_intobj2 and not collide_intobj3 and not collide_smalint2 and not collide_smalint3 and not canceled:
             self.target = (new_x, new_y)
-        
+
     def move_to_target(self):
             final_x, final_y = self.target
             if final_x < self.rect.x:
@@ -399,8 +398,8 @@ class Player(GameObject):
                 self.rect.y += self.speed
                 if self.rect.y >= final_y:
                     self.rect.y = final_y
-                    self.target = None # Обнуляем цель после движения           
-          
+                    self.target = None # Обнуляем цель после движения
+
     def controls(self):
         #
         global last, now
@@ -422,23 +421,23 @@ class Player(GameObject):
             elif pg.key.get_pressed()[pg.K_s]:
                 self.set_direction(270)
                 self.set_target(0, 1)
-            
-            
+
+
 
         if self.target:
             self.move_to_target()
-        
+
     def teleport(self):
         mouse = pg.mouse.get_pos()
         for event in pg.event.get():
             if event == pg.MOUSEBUTTONDOWN:   # checking if mouse was pressed down
                 x_tile = mouse[0] // tales        #Making coordinates able to move player on them correctly
                 y_tile = mouse[1] // tales
-            
+
                 self.rect.x = x_tile     #Moving player
                 self.rect.y = y_tile
 
-        
+
 class InteractionObj(GameObject):
     def __init__(self,name,dialogue, x, y, w, h, speed, image_route,line_lenght,int_mode,question,index = None):
         super().__init__(x, y, w, h, speed, image_route)
@@ -455,13 +454,13 @@ class InteractionObj(GameObject):
         self.times_activated = 0
         self.talked = 0
 
-        
-    
+
+
     def interaction(self):
         global last , string_divide, now, last
 
         if pg.key.get_pressed() [pg.K_e]:
-            if now - last >= 100:            
+            if now - last >= 100:
                 for i in intObj:
                     if i.int_mode == 1:
                         if i.rect.colliderect(player.rect):
@@ -479,7 +478,7 @@ class InteractionObj(GameObject):
                                 i.talked += 1
 
 
-                    if i.int_mode == 2:                
+                    if i.int_mode == 2:
                         left = i.rect.x-tales <= player.rect.x < i.rect.x and i.rect.y == player.rect.y
                         right = i.rect.x<player.rect.x <= i.rect.x + tales and i.rect.y == player.rect.y
                         top = i.rect.y - tales <= player.rect.y <= i.rect.y and i.rect.x == player.rect.x
@@ -493,7 +492,7 @@ class InteractionObj(GameObject):
     #''')
 
                         if left or right or top or bottom:
-                            
+
                             print("INTERACTION!!!")
 
                             if i.question == True:
@@ -507,10 +506,10 @@ class InteractionObj(GameObject):
                             else:
                                 dialog_menu(i.dialogue,i.line_lenght,i.name,i.question)
                                 i.talked += 1
-                    
+
                     if i.int_mode == 3:
                         if player.in_front(i.rect):
-                            
+
                             print("INTERACTION!!!")
 
                             if i.question == True:
@@ -527,7 +526,7 @@ class InteractionObj(GameObject):
 
                     last = pg.time.get_ticks()
 
-                    
+
                 #if i.int_mode != 1 or i.int_mode != 2:
                 #    print("WRONG INT_MODE!!!!!!")
     def using_item(self, item, amount):
@@ -567,7 +566,6 @@ class SmallInt():
         self.leftTop = None
         self.layer = layer
 
-
     def get_leftTopCords(self) -> tuple[float,float]:
 
         self.leftTop = (screen.get_width()/2 - 400, screen.get_height()/5)
@@ -578,16 +576,16 @@ class SmallInt():
         if self.int_mode == 1:
             if self.rect.colliderect(player.rect):
                 if pg.key.get_pressed()[pg.K_e]:
-                    if self.simple_pic != True: 
+                    if self.simple_pic != True:
                         print("SmallInt | Interaction 1")
-                        return True     
-                            
-        if self.int_mode == 2:                
+                        return True
+
+        if self.int_mode == 2:
             left = self.rect.x-tales <= player.rect.x < self.rect.x and self.rect.y == player.rect.y
             right = self.rect.x<player.rect.x <= self.rect.x + tales and self.rect.y == player.rect.y
             top = self.rect.y - tales <= player.rect.y <= self.rect.y and self.rect.x == player.rect.x
             bottom = self.rect.y <= player.rect.y <= self.rect.y + tales and self.rect.x == player.rect.x
-            
+
             # print(f" left = {left} \n right = {right} \n top = {top} \n bottom = {bottom}")
 
 
@@ -596,35 +594,44 @@ class SmallInt():
                     if self.simple_pic != True:
                         print ("SmallInt | Interaction 2")
                         return True
-        
+
         if self.int_mode == 3:
             if player.in_front(self.rect):
 
                 if pg.key.get_pressed()[pg.K_e]:
+
                     if self.simple_pic != True:
                         print("SmallInt | Interaction 3")
-                        
+
                         self.talked += 1
-                        
+
                         return True
+                    
                     else:
                         interact = True
                         while interact:
                             for event in pg.event.get():
                                 if event.type == pg.QUIT:
                                     pg.quit
-                            screen.blit(self.imagebig,(screen.get_width()/2 - 400, screen.get_height()/5))
+                            screen.blit(self.imagebig,self.get_leftTopCords())
                             if pg.key.get_pressed()[pg.K_f]:
                                 interact = False
-                            
+
                             pg.display.flip()
 
-                                
+    def new_imagebig(self,imagebig_route,w = 800,h = 600):
 
-                            
+        self.imagebig_route = imagebig_route
+        self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh))
+
+        self.bigw = w
+        self.bigh = h
 
     def reset(self):
-        screen.blit(self.image1 , (self.rect.x, self.rect.y))                
+        screen.blit(self.image1 , (self.rect.x, self.rect.y))
+
+    def reset_image_big(self):
+        screen.blit(self.imagebig,self.get_leftTopCords())
 
 class Item():
     def __init__(self, name, image_path, x ,y):
@@ -637,7 +644,7 @@ class Item():
         self.rect.x = x
         self.rect.y = y
 
-    
+
     def taking_item(self):
         answer = dialog_menu([f"Do you want to take {self.name}?"], 40, "Rover", True)
 
@@ -663,7 +670,7 @@ class IntItem(Item):
 
     def get_give(self):
         if self.take_use == 1 and self.used != self.max_amount:
-            
+
             answer = dialog_menu([f"Do you want to take {self.name}?"], 40, "Rover", True)
 
             if answer == True:
@@ -679,50 +686,57 @@ class IntItem(Item):
 class Inventory():
     def __init__(self):
         self.collectables = {
-            "shovel" : Item("shovel",  "game pics/shovel_big.png",0,0), # NO SHOVEL IMAGE YET!
-            "tea" : Item("tea", "game pics/tea.png",0,0)  # No image either
+            "shovel" : Item("shovel",  "game pics/shovel_big.png",0,0), 
+            "tea" : Item("tea", "game pics/tea.png",0,0),
+            "key" : Item("key","game pics/key.png",0,0),
+            "tape" : Item("tape","game pics/tape.png",0,0)
         }
 
         self.inventory_panel = [None] * 6
-    
+
     def increase(self, name):
         try:
             self.collectables[name].amount += 1
 
             self.update_inventory()
 
-            print(self.inventory_panel)
+            print(f"Item increased: {self.inventory_panel}")
         except KeyError:
             print("increase failure")
-    
+
     def decrease(self, name):
         try:
+            if self.collectables[name].amount == 0:
+                print(f"Cannot decrease Item with 0 amount.")
+                return
+
             self.collectables[name].amount -= 1
 
             self.update_inventory()
 
-            print(self.inventory_panel)
+            print(f"Item decreased: {self.inventory_panel}")
         except KeyError:
             print("decrease failure")
-    
+
     def get_amount(self,name):
         try:
 
             return self.collectables[name].amount
-        
+
         except KeyError:
             return -1
-    
+
     def update_inventory(self):
         # print("items =",self.collectables.items())
         for name, collectable in self.collectables.items():
-            print("collectable =", collectable)
+            # print("collectable =", collectable)
             if collectable.amount != 0 and collectable not in self.inventory_panel:
                 self.inventory_panel.insert(self.inventory_panel.index(None), collectable)
                 self.inventory_panel.remove(None)
             if collectable.amount == 0 and collectable in self.inventory_panel:
                 self.inventory_panel.insert(self.inventory_panel.index(collectable), None)
                 self.inventory_panel.remove(collectable)
+    
     def draw_inventory(self):
 
         x = y = 60
@@ -736,22 +750,21 @@ class Inventory():
 
         for cell in self.inventory_panel:
             pg.draw.rect(inv_screen, (200, 215, 227), (x, y, side, side))
-            
+
             if cell is not None:
                 inv_screen.blit(cell.image, (x+15 , y+15))
 
                 if cell.amount > 1:
 
                     print_text(inv_screen,str(cell.amount), "Comic Sans" , 35 ,x+45 , y+40)
-                
+
                 if cell.amount == 0:
 
                     cell is None
-                
+
             x += draw_step
 
         screen.blit(inv_screen,(0,0))
-
 
     def inventory_cycle(self):
         global last
@@ -763,25 +776,73 @@ class Inventory():
                         pg.quit()
 
                     inventory.draw_inventory()
-                    
+
                     #if pg.key.get_pressed()[pg.K_1]:
                     #    sleep(0.1)
                     #    inventory.increase("shovel")
-                        
-                        
-                        
+
+
+
                     if pg.key.get_pressed()[pg.K_ESCAPE]:
                         inventory_show = False
-                
-                    
+
+
                     pg.display.flip()
                     clock.tick(30)
 
 inventory = Inventory()
 
+class ScreenCollectable():
+    def __init__(self,x,y,w,h,image_route,name):
+        
+        self.w = w
+        self.h = h
+        self.image_route = image_route
+        self.image = pg.transform.scale(pg.image.load(self.image_route),(self.w, self.h))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.name = name
+        self.active = False
+        self.max_collects = 1
+        self.times_collected = 0 
+        self.reached_max = False
+
+    def reset(self):
+        if self.reached_max == False and self.active: 
+            screen.blit(self.image,(self.rect.x,self.rect.y))
+            print(f"Collectable rect: {self.rect}")
+            
+    def collect_when_clicked(self):
+        if not self.active:
+            return 
+        
+        if self.times_collected >= self.max_collects:
+            self.reached_max = True
+            return self.reached_max
+
+        for event in pg.event.get():
+            if event.type == pg.MOUSEBUTTONDOWN:
+                
+                mouse_pos = pg.mouse.get_pos()
+
+                mouse_in_x = self.rect.x <= mouse_pos[0] <= (self.rect.x + self.w)
+                mouse_in_y = self.rect.y <= mouse_pos[1] <= (self.rect.y + self.h)
+
+                mouse_inside = mouse_in_x and mouse_in_y
+
+                if mouse_inside:
+
+                    inventory.increase(self.name)
+                    self.times_collected += 1
+                    
+                    return self.reached_max
+
+
+
 class Exit_zone():
     def __init__(self,x,y,w,h):
-        
+
         self.rect = pg.rect.Rect(x,y,w,h)
         self.rect.x = x
         self.rect.y = y
@@ -796,7 +857,7 @@ class Exit_zone():
 class Effect(GameObject): # a lot of thinking here | ebanina
     def __init__(self,x,y,w,h,speed, sprites: list, sizes_w = None,sizes_h = None,index = None,layer = 0):
         super().__init__(x,y,w,h,speed,None,index,layer)
-        
+
         self.init_x = x
         self.init_y = y
         self.image = None
@@ -814,7 +875,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
         else:
             self.sizes_w =  sizes_w
 
-        
+
         if sizes_h == None:
 
             self.sizes_h = [tales for _ in range(len(sprites))]
@@ -836,20 +897,20 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 
         sizes_w = self.sizes_w
         sizes_h = self.sizes_h
-        
+
         # print(f"Effect | times done: {times_done} < times max: {times_max}")
         if times_done < times_max:
             # print(f"Effect | Now: {now} - Last: {last} = {now-last} >= Delay: {delay}")
             if now-last >= delay:
 
                 if turn != len(sprites):
-                    
+
                     self.set_image_to_center(turn)
                     self.anim_turn += 1
                     self.anim_last = now
 
                     print(f"Effect | Animation sprite changed ")
-                
+
                 else:
                     self.anim_loops_done +=1
                     self.anim_turn = 0
@@ -864,9 +925,9 @@ class Effect(GameObject): # a lot of thinking here | ebanina
             print("Effect animation finished")
 
             return self.animation_finished
-            
+
     def run_animation (self, speed = 1, times_max = 1):
-        
+
         if not self.animation_finished:
             self.animation(speed,times_max)
 
@@ -898,6 +959,10 @@ class Wall(GameObject):
 #         self.w = w*map_tales
 #         self.h = h*map_tales
 #         self.layout = layout
+
+# endregion Damn CLASSES
+
+# region maps
 
 karta = [
     '0000000000000000000000000000000000000000',
@@ -1016,16 +1081,16 @@ basement_stasa = [
     '1111111111111111111111111',#1
     '1111111111111111111111111',#2
     '1111111111111111111111111',#3
-    '11100000000010000c0000111',#4
-    '1110000000001000000000111',#5
-    '1110000000001000000000111',#6
+    '11100000000010100c0011111',#4
+    '1110000000001000000011111',#5
+    '111000000000100000000b111',#6
     '1110000000001000000000111',#7
     '1110000000001000000000111',#8
-    '1110000000001000000000000',#9
+    '1110000000001100000000000',#9
     '1110000000001000000000000',#10
     '1110000000001000000000111',#11
     '1110000000001000000000111',#12
-    '1111111111221000000000111',#13
+    '1111111111231000000000111',#13
     '1110000000000000000000111',#14
     '1110000000000000000000111',#15
     '1110000000000000000000111',#16
@@ -1057,6 +1122,10 @@ basement_yura = [
     "11111111111111111111"
 ]
 
+# endregion maps
+
+# region Objects init
+
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura]
 startLevel = 5
 choosenLevel = levels[startLevel]
@@ -1067,6 +1136,7 @@ walls=[]
 intObj=[]
 item=[]
 smallInt = []
+screenCollectables = []
 
 map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
 map_chupep = pg.transform.scale(pg.image.load("game pics/chupep.png"),screen.get_size())
@@ -1077,6 +1147,7 @@ map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png")
 
 togo_levels = None
 
+# endregion Objects init
 
 def map(kostil = None, up = None):
     global tales, screen, map_app
@@ -1122,7 +1193,7 @@ def map(kostil = None, up = None):
                         walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/mm.png"))
                     if karta1[i][g]=="5":
                         if random.randint(0,1) == 1:
-                            floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/tihaTravapng.png")) 
+                            floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/tihaTravapng.png"))
                         else:
                             floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/tihaTrava1.png"))
                     if karta1[i][g]=="6":
@@ -1154,7 +1225,7 @@ def map(kostil = None, up = None):
                     if karta1[i][g]=="9":
                         walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/stinka.png"))
                     if karta1[i][g]=="m":
-                        floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/pidloga1.png",)) 
+                        floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/pidloga1.png",))
                     if karta1[i][g]=="q":
                         walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/stil copy.png",90))
                     if karta1[i][g]=="w":
@@ -1178,14 +1249,14 @@ def map(kostil = None, up = None):
                     if karta1[i][g]=="c":
                         walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/left_angle_zaborchik.png",0))
                     if karta1[i][g]==",":
-                        walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/left_up_angle_zaborchik.png",0))    
+                        walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/left_up_angle_zaborchik.png",0))
                     if karta1[i][g]==".":
-                        smallInt.append(SmallInt(3,"game pics/grave_on_the_floor.png","game pics/CHIKIBAMBONI(O.M.).png",g*tales,i*tales,True))  
+                        smallInt.append(SmallInt(3,"game pics/grave_on_the_floor.png","game pics/CHIKIBAMBONI(O.M.).png",g*tales,i*tales,True))
                     if karta1[i][g]=="[":
                         intObj.append(InteractionObj("Rover",["I cant leave yet"],g*tales,i*tales,tales,tales,0,"game pics/zaborl.png",30,3,False,"exit"))
                     if karta1[i][g]=="]":
-                        intObj.append(InteractionObj("Rover",["I cant leave yet"],g*tales,i*tales,tales,tales,0,"game pics/zaborr.png",30,3,False,"exit"))     
-                
+                        intObj.append(InteractionObj("Rover",["I cant leave yet"],g*tales,i*tales,tales,tales,0,"game pics/zaborr.png",30,3,False,"exit"))
+
         if choosenLevel == chupep:
             print ("map | CL = supertest33")
 
@@ -1214,7 +1285,7 @@ def map(kostil = None, up = None):
             player.target = None
             # player.rect.x , player.rect.y =(tales, tales*2)
             player.__init__(tales,tales*2,tales,tales,tales/8,"game pics/avatar.png")
-            
+
 
             print("map | CL = appartment")
             screen.blit(map_app,(0,0,12*tales,11*tales))
@@ -1233,7 +1304,7 @@ def map(kostil = None, up = None):
                     if appartment[i][g] == "5":
                         intObj.append(InteractionObj("Rover",["Notebook on kitchen table -_-"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
                     if appartment[i][g] == "6":
-                        intObj.append(InteractionObj("Rover",["Sleeping bag.","I sleep here","Go to sleep?"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,True,"sleep")) # Do you want to sleep? after those 
+                        intObj.append(InteractionObj("Rover",["Sleeping bag.","I sleep here","Go to sleep?"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,True,"sleep")) # Do you want to sleep? after those
                     if appartment[i][g] == "7":
                         intObj.append(InteractionObj("Rover",["Jacket on the floor.","Wasnt wearing it since yesterday"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False))
                     if appartment[i][g] == "8":
@@ -1257,10 +1328,10 @@ def map(kostil = None, up = None):
             tales = 80
             screen = pg.display.set_mode((tales*12,tales*11))
             map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
-            
+
             player.target = None
-            
-            
+
+
 
             print("map | CL = appartment_1") # fucking
             screen.blit(map_app,(0,0,12*tales,11*tales))
@@ -1279,7 +1350,7 @@ def map(kostil = None, up = None):
                     if appartment_1[i][g] == "5":
                         intObj.append(InteractionObj("Rover",["Notebook on kitchen table -_-"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
                     if appartment_1[i][g] == "6":
-                        intObj.append(InteractionObj("Rover",["Sleeping bag.","I sleep here"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False)) # Do you want to sleep? after those 
+                        intObj.append(InteractionObj("Rover",["Sleeping bag.","I sleep here"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False)) # Do you want to sleep? after those
                     if appartment_1[i][g] == "7":
                         intObj.append(InteractionObj("Rover",["Jacket on the floor.","Wasnt wearing it since yesterday"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False))
                     if appartment_1[i][g] == "8":
@@ -1298,44 +1369,49 @@ def map(kostil = None, up = None):
                         intObj.append(InteractionObj("Rover",["Its so early, I dont want to go anywhere"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False, "exit"))
 
         if choosenLevel == basement_stasa:
-            global togo_levels  
+            global togo_levels
 
             tales = 45
             screen = pg.display.set_mode((tales*25,tales*25))
-            print(f"screen = {screen.get_size()}")
 
             if player.last_level == 5:
                 player.__init__(tales*24,tales*9,tales,tales,tales/8,"game pics/avatar.png")
                 player.set_direction(180)
-                
+
             else:
                 player.__init__(tales*11,tales*24,tales,tales,tales/8,"game pics/avatar.png")
                 player.set_direction(90)
+
             player.allowed_exits = [False,False,False,True]
 
-            
+            togo_levels = None
 
-            togo_levels = None            
+            screen_w, screen_h = screen.get_width() , screen.get_height()
 
-            print("map | CL = basement stasa")
 
             screen.blit(map_stas_low,(0,0,tales*25,tales*25))
 
             for i in range(len(basement_stasa)):
                 for g in range(len(basement_stasa[i])):
-                    
+
                     if basement_stasa[i][g] == "0":
                         floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/nothing.png"))
                     if basement_stasa[i][g] == "1":
                         walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/nothing.png"))
                         # print(f"i = {i}, g = {g}")
                     if basement_stasa[i][g] == "2":
-                        intObj.append(InteractionObj("Rover",["Closed..."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False,"dooor"))
+                        intObj.append(InteractionObj("Rover",["Closed..."],g*tales,i*tales,tales,tales,0,"game pics/door_l.png",40,3,False,"door"))
+                    if basement_stasa[i][g] == "3":
+                        intObj.append(InteractionObj("Rover",["Closed..."],g*tales,i*tales,tales,tales,0,"game pics/door_r.png",40,3,False,"door"))
                     if basement_stasa[i][g] == "c":
                         smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/zzzamok.png",tales*g,tales*i,False, "chest"))
-        
+                    if basement_stasa[i][g] == "b":
+                        smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/box_empty.png",g*tales,i*tales,False,index = "box",h = 800))
+                        screenCollectables.append(ScreenCollectable(screen_w/2 - 100,screen_h/2 - 100,200,200,"game pics/tape.png","tape"))
+                        
+
         if choosenLevel == basement_yura:
-            
+
 
             tales = 60
             screen = pg.display.set_mode((tales*20, tales*14))
@@ -1384,22 +1460,22 @@ def map(kostil = None, up = None):
         # Fixes the bug with player model on appartment map
 
         if choosenLevel == appartment or choosenLevel == appartment_1:
-            
+
             # print("map | kostil found")
             screen.blit(map_app,(0,0,12*tales,11*tales))
 
         if choosenLevel == chupep:
 
             screen.blit(map_chupep,(0,0,screen.get_width(),screen.get_height()))
-        
+
         if choosenLevel == basement_stasa:
 
             screen.blit(map_stas_low,(0,0,screen.get_width(),screen.get_height()))
-        
+
         if choosenLevel == basement_yura:
 
             screen.blit(map_yura_low,(0,0,screen.get_width(),screen.get_height()))
-        
+
         for w in walls:
             if w.image_route != "game pics/nothing.png" and w.layer == 0:
                 w.reset()
@@ -1414,7 +1490,7 @@ def map(kostil = None, up = None):
                 effect.reset()
         for f in floor:
             if f.layer == 0:
-                f.reset()   
+                f.reset()
 
 
 
@@ -1445,10 +1521,10 @@ def map(kostil = None, up = None):
                 effect.reset()
         for f in floor:
             if f.layer == 1:
-                f.reset()   
+                f.reset()
 
                 # KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
-                
+
 player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
@@ -1456,10 +1532,10 @@ player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
 
 def travel(name = None,dialogue = None, record=True )->None: #travel on other level
     global last, choosenLevel, startLevel
-    
+
 
     if player.target is None: # Checking that the player stands still
-        
+
         print(f"togo_levels in Travel {togo_levels}")
 
         if togo_levels != None:
@@ -1467,7 +1543,7 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
             answer = dialog_menu(dialogue,40,name,True)
 
             if answer == True:
-                
+
                 print("travel through togo levels")
 
                 togo_index = levels.index(togo_levels)
@@ -1475,7 +1551,7 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
                 print(f"togo index = {togo_index}")
 
                 choosenLevel= levels[togo_index]
-                
+
                 print(f"travel | startLevel = {startLevel}")
 
                 old_startLevel = startLevel # recording the last start level
@@ -1489,60 +1565,60 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
                 intObj.clear()
                 item.clear()
                 smallInt.clear()
-                
+
                 print("travel | map lists cleared")
-                
+
                 screen.fill("black")
 
                 if record == True:
                     player.current_level = startLevel
                     player.last_level = old_startLevel
-                    
+
                     print(f"Player current level = {player.current_level}")
                     print(f"Player last level = {player.last_level}")
-                    
+
 
                 map()
                 return
 
         if startLevel + 1 < len(levels):
-            
+
 
             print("travel func began")
             if dialogue != None and name != None:
-                
+
                 print("ASKING TRAVEL:")
 
                 answer = dialog_menu(dialogue,40,name,True)
-                
+
                 print("travel answ =", answer)
 
                 if answer == True:
-                    print("travel | startlevel =", startLevel)        
-                    
+                    print("travel | startlevel =", startLevel)
+
                     old_startLevel = startLevel
                     startLevel += 1
-                    
+
                     print("travel | new startlevel =", startLevel)
 
                     choosenLevel = levels[startLevel]
-                    
+
                     # print("travel | CL =",choosenLevel)
-                    
+
                     floor.clear()
                     walls.clear()
                     intObj.clear()
                     item.clear()
                     smallInt.clear()
-                    
+
                     print("travel | map lists cleared")
-                    
+
                     screen.fill("black")
-                    
+
                     if record == True:
                         player.current_level = startLevel
                         player.last_level = old_startLevel
-                        
+
                         print(f"Player current level = {player.current_level}")
                         print(f"Player last level = {player.last_level}")
 
@@ -1550,32 +1626,32 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
 
                 # print("travel | map began")
             else:
-                print("FORCE TRAVEL:") 
-                print("travel | startlevel =", startLevel)        
-                
+                print("FORCE TRAVEL:")
+                print("travel | startlevel =", startLevel)
+
                 old_startLevel = startLevel
                 startLevel += 1
-                
+
                 print("travel | new startlevel =", startLevel)
 
                 choosenLevel = levels[startLevel]
-                
+
                 # print("travel | CL =",choosenLevel)
-                
+
                 floor.clear()
                 walls.clear()
                 intObj.clear()
                 item.clear()
                 smallInt.clear()
-                
+
                 print("travel | map lists cleared")
-                
+
                 screen.fill("black")
 
                 if record == True:
                     player.current_level = startLevel
                     player.last_level = old_startLevel
-                    
+
                     print(f"Player current level = {player.current_level}")
                     print(f"Player last level = {player.last_level}")
 
@@ -1590,12 +1666,12 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
                 player.rect.x -= tales
             if player.rect.x < 0:
                 player.rect.x += tales
-            
-            
-                
-            
 
-        
+
+
+
+
+
                 pg.display.flip()
                 return True
         else:
@@ -1635,13 +1711,13 @@ def menu():
     t_quit.get_rect()
     w=screen.get_width()
     h=screen.get_height()
-    
+
     menuShow=True
     while menuShow:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
-                
+
         screen.blit(menu_bgr, (0,0))
         # screen.fill((62,123,39))
         mouse=pg.mouse.get_pos()
@@ -1653,7 +1729,7 @@ def menu():
                 menuShow= False
             if w*0.16 - 110 <= mouse[0] <= w*0.16 +115 and h/2 +50 <= mouse[1] <= h/2 + 110:
                 controls_show = True
-        
+
             # Making Controls thing able to close
             while controls_show:
                 for event in pg.event.get():
@@ -1676,7 +1752,7 @@ def menu():
 
         else:
             pg.draw.rect(screen,(18,53,36), [w*0.16 - 70,h/2 + 150,130,60])
-        
+
         if w*0.16 - 75 <= mouse[0] <= w*0.16 +75 and h/2 -50 <= mouse[1] <= h/2 + 10:
             pg.draw.rect(screen, (133, 169, 71), [w*0.16 - 75, h/2 - 50, 150,60])
 
@@ -1699,30 +1775,30 @@ def menu():
 def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,line_lenght = 20):
     alpha_surface = pg.Surface((w, h),pg.SRCALPHA)  #Making surface that able to be transparent
     alpha_surface.fill((0,0,0,128)) #Setting transparency
-                       
+
 
         #Copying code from Dialog menu to make a proper looking text
-    
+
     page = 0
     page_text = dialogue[page]
     strings = []
-    
+
     for i in range(0,len(page_text),line_lenght):
-        
+
         if i != 0:
             i = end
 
 
         # print("hint_menu | pagetext =",len(page_text))
         # print("hint_menu | i and line_lenght =",i,",",line_lenght)
-        
+
         if i+line_lenght < len(page_text):
-            end = i+line_lenght 
+            end = i+line_lenght
         else:
             temp = len(page_text) - i
             # print("hint_menu | temp =",temp)
-            end = i + temp 
-        
+            end = i + temp
+
         # print("hint_menu | end =",end)
         # print("hint_menu | page_text[end] =",page_text[end-1])
 
@@ -1732,9 +1808,9 @@ def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,li
             decrease += 1
             # print("hint_menu | end decreased by",decrease)
 
-        
+
         strings.append(page_text[i:end])
-        
+
         # print("hint_menu | strings =", strings)
 
     fontTalk = pg.font.SysFont("Comic Sans", 32)
@@ -1755,20 +1831,36 @@ def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,li
     if len(strings)>1:
         alpha_surface.blit(line2, (0, 35))
     if len(strings)>2:
-        alpha_surface.blit(line3, (0, 70))             
+        alpha_surface.blit(line3, (0, 70))
     if len(strings)>3:
-        alpha_surface.blit(line4, (0, 105))   
+        alpha_surface.blit(line4, (0, 105))
     if len(strings)>4:
-        alpha_surface.blit(line5, (0, 140))   
+        alpha_surface.blit(line5, (0, 140))
     if len(strings)>5:
-        alpha_surface.blit(line6, (0, 175)) 
-    screen.blit(alpha_surface,(x,y)) #Drawing the surface | VERY IMPORTANT TO THIS BE AT THE END OF ALL CHANGES IN SURFACE          
-    # print("hint_menu | Done")                
+        alpha_surface.blit(line6, (0, 175))
+    screen.blit(alpha_surface,(x,y)) #Drawing the surface | VERY IMPORTANT TO THIS BE AT THE END OF ALL CHANGES IN SURFACE
+    # print("hint_menu | Done")
 
 def fps_show():
     fps = round(clock.get_fps(),1)
     fps_lenght = 150
     print_text(screen,f"FPS: {fps}", "Comic Sans",24,screen.get_width() - fps_lenght,0)
+
+def screencollectables_cycle(name = None,activate = None):
+    
+    for collectable in screenCollectables:
+            if name != None and activate != None:
+
+                if collectable.name == name:
+                    collectable.active = activate
+                    print(f"Collectable {collectable.name} activated")
+
+            if collectable.active:
+                collectable.reset()
+                collectable.collect_when_clicked()
+
+            if collectable.reached_max:
+                screenCollectables.remove(collectable)
 
 # initializing something for map_blit():
 
@@ -1777,10 +1869,10 @@ lastlevel = None   # We already have player.last_level but this thing here to in
 
 def map_blit(floor_only = None):
     global level1progress , happened , lastlevel
-    
+
 
     if choosenLevel != lastlevel:
-            
+
         lastlevel = choosenLevel
 
         if choosenLevel == basement_yura:
@@ -1795,6 +1887,10 @@ def map_blit(floor_only = None):
 
             lamp1_on,lamp2_on,lamp3_on,lamp4_on = None,None,None,None
 
+        if choosenLevel == basement_stasa:
+            global unlock_door
+
+            unlock_door = None
 
     if floor_only != None:
         for i in floor:
@@ -1805,59 +1901,59 @@ def map_blit(floor_only = None):
             # not reseting objects after field level because map() does it now (same for walls and smallInt)
             if startLevel < 3:
                 obj.reset()
-            
+
             obj.interaction()
-            if choosenLevel == karta1:   
-                
+            if choosenLevel == karta1:
+
                 if obj.image_route == "game pics/mo.png" or obj.image_route == "game pics/mo_down.png":
-                    
+
                     if obj.answer:
 
                         if inventory.get_amount("shovel") <1:
                             print("Shovel amount:",inventory.get_amount("shovel"), inventory.get_amount("shovel") < 1)
                             obj.answer = False
                             break
-                        
+
                         if obj.image_route == "game pics/mo.png":         # MAYBE CHANGE IT TO A SHORTER FUNCTION LATER | We are changing gravve texture when answer after interaction is positive
-                        
+
                             walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/mm.png", 0))
                             intObj.remove(obj)
-                            
+
                             level1progress += 1
 
                         if obj.image_route == "game pics/mo_down.png":     # MAYBE CHANGE IT TO A SHORTER FUNCTION LATER | We are changing gravve texture when answer after interaction is positive
-                    
+
                             obj.image_route = "game pics/mm2.png"
                             walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, obj.image_route, 0))
                             intObj.remove(obj)
-                            
+
                             level1progress += 1
 
 
                 if obj.index == "exit":
                     if level1progress == 3:
                         obj.__init__("Rover",["Should I leave?"],obj.rect.x,obj.rect.y,obj.w,obj.h,obj.speed,obj.image_route,obj.line_lenght,obj.int_mode,True,"active_exit")
-                if obj.index == "active_exit":    
+                if obj.index == "active_exit":
                     if obj.answer == True:
                         level1progress = 0
-                        
+
                         travel() # kalitka
 
             if choosenLevel == appartment:
 
                 if obj.index == "tea": # checking for int obj with index tea
-                    
+
                     if obj.times_activated > 10:
                         walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/nothing.png", 0))
                         intObj.remove(obj)
-                    
+
                     if obj.answer == True: # looking if answer is yes
                         inventory.increase("tea") # Giving tea
-                        print("tea =", inventory.get_amount("tea")) 
-                        
-                        
+                        print("tea =", inventory.get_amount("tea"))
+
+
                     # Changing text after several tea
-                    
+
                         if 5 >obj.times_activated >= 1:
                             obj.change(obj.name,["More tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
 
@@ -1866,7 +1962,7 @@ def map_blit(floor_only = None):
 
                         elif obj.times_activated == 10:
                             obj.change(obj.name,["Last tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-                        
+
                         obj.answer = False
 
                 if obj.index == "sleep": # checking my sleeping bag
@@ -1876,17 +1972,17 @@ def map_blit(floor_only = None):
 
             if choosenLevel == appartment_1:
                 if obj.index == "tea": # checking for int obj with index tea
-                    
+
                     if obj.times_activated > 10:
                         walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/nothing.png", 0))
                         intObj.remove(obj)
-                    
+
                     if obj.answer == True: # looking if answer is yes
                         inventory.increase("tea") # Giving tea
-                        print("tea =", inventory.get_amount("tea")) 
-                        
+                        print("tea =", inventory.get_amount("tea"))
+
                     # Changing text after several tea
-                    
+
                         if 5 >obj.times_activated >= 1:
                             obj.change(obj.name,["More tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
 
@@ -1895,9 +1991,9 @@ def map_blit(floor_only = None):
 
                         elif obj.times_activated == 10:
                             obj.change(obj.name,["Last tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-                        
+
                         obj.answer = False
-                
+
                 if obj.index == "sink":
                     if obj.talked >= 1:
                         level1progress +=1
@@ -1917,18 +2013,18 @@ def map_blit(floor_only = None):
                         if obj.answer == True:
                             if player.target == None:
                                 print(f"traveling and reseting levelprogress")
-                                
+
                                 travel()
                                 level1progress = 0
                                 happened = False
-                    
+
             if choosenLevel == basement_yura:
-                
+
 
                 if obj.index == "lever1":
 
                         if obj.answer:
-                            
+
                             lever1_action = True
 
                             if obj.image_route == "game pics/lever_down.png":
@@ -1937,18 +2033,18 @@ def map_blit(floor_only = None):
                                 obj.reload_image()
                                 print(f"lever 1 action = {lever1_action}")
 
-                            
+
                             else:
-                                
+
                                 obj.image_route = "game pics/lever_down.png"
                                 obj.reload_image()
-                                
+
                             obj.answer = False
-            
+
                 if obj.index == "lever2":
 
                         if obj.answer:
-                            
+
                             lever2_action = True
 
                             if obj.image_route == "game pics/lever_down.png":
@@ -1957,15 +2053,15 @@ def map_blit(floor_only = None):
                                 obj.reload_image()
                                 print(f"lever 2 action = {lever2_action}")
 
-                                
+
 
                             else:
-                                
+
                                 obj.image_route = "game pics/lever_down.png"
                                 obj.reload_image()
-                                
+
                             obj.answer = False
-                
+
                 if obj.index == "lever3":
 
                         if obj.answer:
@@ -1978,19 +2074,19 @@ def map_blit(floor_only = None):
                                 obj.reload_image()
                                 print(f"lever 3 action = {lever4_action}")
 
-                            
+
 
                             else:
-                                
+
                                 obj.image_route = "game pics/lever_down.png"
                                 obj.reload_image()
-                                
+
                             obj.answer = False
 
                 if obj.index == "lever4":
 
                     if obj.answer:
-                        
+
                         lever4_action = True
 
                         if obj.image_route == "game pics/lever_down.png":
@@ -1999,16 +2095,38 @@ def map_blit(floor_only = None):
                             obj.reload_image()
                             print(f"lever 4 action = {lever4_action}")
 
-                            
+
                         else:
-                            
+
                             obj.image_route = "game pics/lever_down.png"
                             obj.reload_image()
-                            
+
                         obj.answer = False
+
+            if choosenLevel == basement_stasa:
+                
+                if obj.index == "door":
+                    
+                    if unlock_door:
+                        if obj.image_route == "game pics/door_l.png":
+                            floor.append(GameObject(obj.rect.x,obj.rect.y,obj.w,obj.h,0,"game pics/odoor_l.png"))
+                        if obj.image_route == "game pics/door_r.png":
+                            floor.append(GameObject(obj.rect.x,obj.rect.y,obj.w,obj.h,0,"game pics/odoor_r.png"))
+
+                        intObj.remove(obj)
+
+                    # print(f"key amount: {inventory.get_amount('key')}")
+
+                    if inventory.get_amount("key") > 0:
                         
+                        obj.dialogue = ["Unlock the door?"]
+                        obj.question = True
 
+                    if obj.times_activated > 0:
 
+                        inventory.decrease("key")
+                        unlock_door = True
+                        
 
 
             if len(intObj) == 0:
@@ -2017,7 +2135,7 @@ def map_blit(floor_only = None):
                 if inventory.get_amount("shovel") != 0:
                     inventory.decrease("shovel")
         for ef in effects:
-            
+
             if choosenLevel == basement_yura:
 
                 if ef.animation_finished:
@@ -2028,13 +2146,12 @@ def map_blit(floor_only = None):
                 if puzzle_won:
                     ef.run_animation(speed = 4)
 
-
         for i in floor:
             if startLevel < 3:
-                i.reset()   
+                i.reset()
             # if choosenLevel == basement_yura:
                 # if i.index == "zapiska":
-                    
+
 
 
                     # Moving code
@@ -2046,14 +2163,13 @@ def map_blit(floor_only = None):
                     #     i.move_to_target()
                     #     print ("moving zapiska")
 
-
         for w in walls:
-            if startLevel < 3: 
+            if startLevel < 3:
                 w.reset()
-            
+
             if choosenLevel == basement_yura:
 
-                
+
 
                 if w.index == "lamp1":
 
@@ -2064,13 +2180,13 @@ def map_blit(floor_only = None):
                             w.image_route = "game pics/lamp.png"
                             w.reload_image()
                             lamp1_on = True
-                            
+
 
                         else:
 
                             w.image_route = "game pics/lamp_off.png"
                             w.reload_image()
-                        
+
                         print("lamp1 | image changed")
 
                     # print(f"l2 = {lever2_action} l3 = {lever3_action} l4 = {lever4_action}")
@@ -2082,14 +2198,14 @@ def map_blit(floor_only = None):
                             w.image_route = "game pics/lamp.png"
                             w.reload_image()
                             lamp1_on = True
-                            
+
                         else:
 
                             w.image_route = "game pics/lamp_off.png"
                             w.reload_image()
 
-                        
-                        
+
+
                         print("lamp1 | image changed")
 
 
@@ -2100,14 +2216,14 @@ def map_blit(floor_only = None):
                             w.image_route = "game pics/lamp.png"
                             w.reload_image()
                             lamp1_on = True
-                            
+
                         else:
 
                             w.image_route = "game pics/lamp_off.png"
                             w.reload_image()
 
-                        
-                        
+
+
                         print("lamp1 | image changed")
 
                     if lever4_action:
@@ -2117,14 +2233,14 @@ def map_blit(floor_only = None):
                             w.image_route = "game pics/lamp.png"
                             w.reload_image()
                             lamp1_on = True
-                            
+
                         else:
 
                             w.image_route = "game pics/lamp_off.png"
                             w.reload_image()
 
-                    
-                        
+
+
                         print("lamp1 | image changed")
 
                 if w.index == "lamp2":
@@ -2137,7 +2253,7 @@ def map_blit(floor_only = None):
                             w.reload_image()
                             lamp2_on = True
 
-                            
+
                         else:
 
                             w.image_route = "game pics/lamp_off.png"
@@ -2153,7 +2269,7 @@ def map_blit(floor_only = None):
                             w.image_route = "game pics/lamp.png"
                             w.reload_image()
                             lamp2_on = True
-                                
+
                         else:
 
                             w.image_route = "game pics/lamp_off.png"
@@ -2169,7 +2285,7 @@ def map_blit(floor_only = None):
 
                             w.image_route = "game pics/lamp.png"
                             w.reload_image()
-                            
+
                             lamp3_on = True
 
                         else:
@@ -2177,8 +2293,8 @@ def map_blit(floor_only = None):
                             w.image_route = "game pics/lamp_off.png"
                             w.reload_image()
 
-                    
-                        
+
+
                         print("lamp3 | image changed")
 
                 if w.index == "lamp4":
@@ -2190,14 +2306,14 @@ def map_blit(floor_only = None):
                             w.image_route = "game pics/lamp.png"
                             w.reload_image()
                             lamp4_on = True
-                            
+
                         else:
 
                             w.image_route = "game pics/lamp_off.png"
                             w.reload_image()
 
-                        
-                        
+
+
                         print("lamp4 | image changed")
 
                     if lever3_action:
@@ -2212,32 +2328,31 @@ def map_blit(floor_only = None):
 
                             w.image_route = "game pics/lamp_off.png"
                             w.reload_image()
-                        
-                        
+
+
                         print("lamp4 | image changed")
 
                     lever1_action,lever2_action,lever3_action,lever4_action = False,False,False,False
-                
+
 
 
                 puzzle_won = lamp1_on and lamp2_on and lamp3_on and lamp4_on
                 # print(f"l1 {lamp1_on}, l2 {lamp2_on}, l3 {lamp3_on}, l4 {lamp4_on} \npz {puzzle_won}")
 
                 if puzzle_won:
-                    
+
                     if w.index == "frog":
 
                         w.image_route, w.index = "game pics/nothing.png", None   # If not change index cycle eats all FPS
-
 
         for smol in smallInt:
             if startLevel < 3:
                 smol.reset()
 
             if choosenLevel == karta1:
-                interact=smol.interaction() 
+                interact=smol.interaction()
                 #print ("smol | interact =",interact)
-                
+
                 while interact:
                     for event in pg.event.get():
                         if event.type == pg.QUIT:
@@ -2245,12 +2360,18 @@ def map_blit(floor_only = None):
                     screen.blit(smol.imagebig,(screen.get_width()/2 - 400, screen.get_height()/5))
                     if pg.key.get_pressed()[pg.K_f]:
                         interact = False
-                    
+
                     pg.display.flip()
 
             if choosenLevel == basement_stasa:
-                
+
                 if smol.index == "chest":
+                    
+                    if inventory.get_amount("key") > 0:
+
+                        smol.new_imagebig("game pics/empty_chest.png")
+                        smol.index = "open_chest"
+                        return 
 
                     interact = smol.interaction()
 
@@ -2264,8 +2385,6 @@ def map_blit(floor_only = None):
 
                         screen.blit(smol.imagebig,(smol.leftTop[0], smol.leftTop[1])) # bliting the lock
 
-                        
-
                         print_text(screen,str(num1), "Comic Sans", 80, 320,600,"black")
                         print_text(screen,str(num2), "Comic Sans", 80, 480,600,"black")
                         print_text(screen,str(num3), "Comic Sans", 80, 640,600,"black")
@@ -2274,7 +2393,7 @@ def map_blit(floor_only = None):
                             if event.type == pg.QUIT:
                                 pg.quit
 
-                            
+
 
                             if event.type == pg.MOUSEBUTTONDOWN:
                                 mouse = pg.mouse.get_pos()
@@ -2282,7 +2401,7 @@ def map_blit(floor_only = None):
 
                                 # TRIkUTNICHKI
 
-                                tr1_u = ((294, 581),(353, 538),(414, 582)) 
+                                tr1_u = ((294, 581),(353, 538),(414, 582))
                                 tr1_d = ((294, 737),(352, 781),(413, 739))
                                 tr2_u = ((453, 582),(513, 538),(574, 581))
                                 tr2_d = ((454, 737),(513, 781),(574, 736))
@@ -2315,7 +2434,7 @@ def map_blit(floor_only = None):
                                         num1 = 9
 
                                         # print(f"Num 1 = {num1}")
-                                
+
                                 if point_in_triangle(tr2_u[0],tr2_u[1],tr2_u[2],mouse):
                                     print("Up Middle Triangle Clicked!!!!!!!!!")
                                     # Add Num 2
@@ -2354,24 +2473,70 @@ def map_blit(floor_only = None):
                                     else:
                                         num3 = 9
                                     # print(f"Num 3 = {num3}")
-                                
+
                                 if point_in_circle(mouse[0],mouse[1],button[0],button[1],radius):
                                     print("point in circle")
 
-                                    if num1 == 5:
-                                        if num2 == 1:
-                                            if num3 == 2:
-                                                
-                                                print("RIGHT PASSWORD!!!!!!!!")
-                                                intObj.append(InteractionObj("Rover",["Chest unlocked","W.I.P."],smol.rect.x,smol.rect.y,smol.w,smol.h,0,"game pics/nothing.png",40,3,False))
-                                                smallInt.remove(smol)
+                                    correct_password = num1 == 5 and num2 == 1 and num3 == 2
 
-                                                interact = False
+                                    if correct_password:
+
+                                        print("RIGHT PASSWORD!!!!!!!!")
+
+                                        smol.new_imagebig("game pics/empty_chest.png")
+                                        smol.index = "open_chest"
+
+                                        # adding key in chest that picks up when you click on it
+                                        x,y = smol.rect.x , smol.rect.y
+                                        
+
+                                        screenCollectables.append(ScreenCollectable(x+(smol.w/2) - 200, y + (smol.h/2) + 350, 100, 100, "game pics/key.png","key"))
+
+                                        interact = False
 
                         if pg.key.get_pressed()[pg.K_f]:
                             interact = False
 
                         pg.display.flip()
+
+                if smol.index == "open_chest":
+                    interact = smol.interaction()
+
+                    while interact:
+                        
+                        smol.reset_image_big()
+
+                        if inventory.get_amount("key") == 0:
+                            screencollectables_cycle("key",True)				
+
+                        for event in pg.event.get(): # Cycles man
+                            if event.type == pg.QUIT:
+                                pg.quit()	
+
+                        if pg.key.get_pressed()[pg.K_f]:
+                            interact = False
+                        
+                        pg.display.flip()
+                
+                if smol.index == "box":
+                    interact = smol.interaction()
+
+                    while interact:
+
+                        for event in pg.event.get():
+                            if event.type == pg.QUIT:
+                                pg.quit()
+                        
+                        if pg.key.get_pressed()[pg.K_f]:
+                            interact = False
+
+                        smol.reset_image_big()
+
+                        if inventory.get_amount("tape") == 0:
+                            screencollectables_cycle("tape",True)						
+
+                        pg.display.flip()
+                        
 
 
 
@@ -2390,7 +2555,7 @@ def map_blit(floor_only = None):
                 if left or right or top or bottom:
                     if pg.key.get_pressed()[pg.K_e]:
                         thing.get_give()
-            
+
             if thing.index == "shovel":
                 if thing.used == thing.max_amount:
                     floor.append(GameObject(thing.rect.x,thing.rect.y,thing.w,thing.h,0,"game pics/pidloga1.png"))
@@ -2399,8 +2564,8 @@ def map_blit(floor_only = None):
 
         map("reset")
 
-#global varients    
-last=0
+#global varients
+last = 0
 level1progress = 0
 happened = False
 controls_show = False
@@ -2418,27 +2583,27 @@ while running:
         #if event.type == pg.USEREVENT:
             #player.controls()
 
-
+    mouse = pg.mouse.get_pos()
     now = pg.time.get_ticks() #Current time number
     #print("now =", now)
     #screen.blit(Chickibamboni, (0,0))
-    
 
-    
+
+
     map_blit()
 
-    
+
     # Fixing things after tale changed:
-    
+
     # print(f"player.w = {player.w}")
-    
+
     # if player.w != tales:
     #     player.reload("game pics/avatar.png",player.rect.x,player.rect.y,w=tales,h=tales,speed = tales/8)
 #         print(f'''player.w = {player.w}
 # player.h = {player.h}''')
 
 
-    player.reset() 
+    player.reset()
 
     map(up = True)
 
@@ -2450,14 +2615,14 @@ while running:
 
 
 
-    
+
     if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
 
 
-        
 
 
-        if level1progress == 0: 
+
+        if level1progress == 0:
             hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
         if inventory.get_amount("shovel") >= 1 and happened == False:    # Pomoemu eto HALTURA | da pohui
             level1progress += 1
@@ -2470,17 +2635,17 @@ while running:
         if level1progress == 3:
             hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
 
-    
+
     if choosenLevel == appartment_1:
-        
+
         if level1progress == 0:
             hint_menu(["I need to brush my teeth."],tales*8,tales,tales*2,0,40)
 
         if level1progress >= 1:
             hint_menu(["I should go check basement."],tales*8,tales,tales*2,0,40)
-        
-    
-        
+
+
+
 
 
     # if choosenLevel == appartment:
@@ -2488,7 +2653,7 @@ while running:
 
 
 #Put the game before this line
-    
+
     pg.display.flip()
     clock.tick(30)
 pg.quit()
