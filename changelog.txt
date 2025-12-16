@@ -1,7 +1,7 @@
 Bugs:
 
 *FIXED* On the field you can go back and advance to the next level. 
-~On graveyard if you interacted with open grave and after took a shovel grave becomes buried
+*FIXED* On graveyard if you interacted with open grave and after took a shovel grave becomes buried
 
 little details to do:
 
@@ -12,7 +12,7 @@ Plans:
 
 Need to rewrite some things, so we can travel throgh two parts of our basement infinity amount of times and also be able to save all data on those levels.
 
-For basement yura: When levers puzzle is solved the frog spits the code for chest after being electricuted or explodes/ !!!
+For basement yura: When levers puzzle is solved the frog spits the code for chest after being electricuted or explodes/ !!! *DONE*
 
 
 
@@ -65,4 +65,10 @@ Dec 3: Note wirh code now apear beneath frog when it exploded
 Dec 4-6: Learning git and github
 Dec 7: Trying to add collectable that goes into inventory when clicked on
 Dec 8: Can loot the key from the chest.
+<<<<<<< HEAD
 Dec 10: Can pick up tape from the box / not adding to inventory yet
+=======
+Dec 10: Can pick up tape from the box / not adding to inventory yet
+Dec 15: Collectables are fully working, door can be open with key now. 
+TODO: If not require to rewrite half of the code make maps be able to save progress, Make animation for waterdrop in a basement, make little minigame for fixing the pipe, move on to the sound probably <:
+>>>>>>> a5e8e1a (Collectables are fully working, door can be open with the key now.)
