@@ -68,3 +68,4 @@ Dec 8: Can loot the key from the chest.
 Dec 10: Can pick up tape from the box / not adding to inventory yet
 Dec 15: Collectables are fully working, door can be open with key now. 
 TODO: If not require to rewrite half of the code make maps be able to save progress, Make animation for waterdrop in a basement, make little minigame for fixing the pipe, move on to the sound probably <:
+Dec 16: Fixed puzzle with frog (frog exploded when not all lamps on)
