@@ -1528,8 +1528,6 @@ def map(kostil = None, up = None):
 player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
-
-
 def travel(name = None,dialogue = None, record=True )->None: #travel on other level
 	global last, choosenLevel, startLevel
 
@@ -2597,16 +2595,6 @@ while running:
 
 
 	map_blit()
-
-
-	# Fixing things after tale changed:
-
-	# print(f"player.w = {player.w}")
-
-	# if player.w != tales:
-	#     player.reload("game pics/avatar.png",player.rect.x,player.rect.y,w=tales,h=tales,speed = tales/8)
-#         print(f'''player.w = {player.w}
-# player.h = {player.h}''')
 
 
 	player.reset()
