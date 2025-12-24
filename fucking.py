@@ -271,7 +271,7 @@ def triangle_area(tr1,tr2,tr3):
 
 	return trig_area
 
-def point_in_triangle(tr1,tr2,tr3,point):
+def point_in_triangle(tr1,tr2,tr3,point) -> bool:
 
 	# Main triangle area
 	s = triangle_area(tr1,tr2,tr3)
