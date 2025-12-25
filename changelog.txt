@@ -72,3 +72,4 @@ Dec 16: Fixed puzzle with frog (frog exploded when not all lamps on)
 Dec 17: Started wotk on fix pipe minigame
 Dec 22: Tape appear when LMB clicked and it changes shape depending on mouse pos. It was miracle that I was able to do this.
 Dec 23: Finished fixpipe minigame on test.py need to polish it up and implicate in main code.
+Dec 24 (11:59 pm): Polishing fixpipe. Have the idea how to make it a little more realistic, implementing idea now.

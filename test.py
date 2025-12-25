@@ -56,11 +56,16 @@ while running:
         if event.type == pg.QUIT:
             pg.quit()
         if event.type == pg.MOUSEBUTTONDOWN:
+
             print(f"mouse: {mouse}")
             initTapePoints = [(mouse[0] - tapeWidth / 2, mouse[1]),(mouse[0] + tapeWidth / 2 , mouse[1])]
+            init_click = mouse
+
         if event.type == pg.MOUSEBUTTONUP:
+
             patches.append(unfinishedTapePoint)
             initTapePoints = None
+            init_click = None
 
             hole_points_covered = hole_cover_check()
 
@@ -70,6 +75,14 @@ while running:
                 print("PIPE FIXED!")
                 running = False
 
+
+    if "init_click" in globals() and init_click != None:
+        
+        # print(f"{init_click[0]} - {mouse[0]} , {init_click[1]} - {mouse[1]} | init_x - cur_x , init_y - cur_y")
+        mouse_displacement = (-(init_click[0] - mouse[0]) , -(init_click[1] - mouse[1]))
+        print(f"mouse_displacement = {mouse_displacement}")
+
+# OUTPUT
 
     screen.blit(background,(0,0))
     
