@@ -11,6 +11,10 @@ pg.display.set_caption("Suchina")
 
 Chickibamboni=pg.image.load("game pics/CHIKIBAMBONI(O.M.).png")
 
+
+GAME_STATE = "Main"
+
+
 # Simple Object needs to be able to move and have only
 # necessary parameters as coordinates and rect.
 
@@ -439,7 +443,7 @@ class Player(GameObject):
 
 
 class InteractionObj(GameObject):
-	def __init__(self,name,dialogue, x, y, w, h, speed, image_route,line_lenght,int_mode,question,index = None):
+	def __init__(self,name,dialogue, x, y, w, h, speed, image_route,line_lenght,int_mode,question,index = None, custom = False):
 		super().__init__(x, y, w, h, speed, image_route)
 		self.fontName = pg.font.SysFont("Comic Sans", 55)
 		self.fontTalk = pg.font.SysFont("Comic Sans", 55)
@@ -453,7 +457,7 @@ class InteractionObj(GameObject):
 		self.index = index
 		self.times_activated = 0
 		self.talked = 0
-
+		self.custom = custom
 
 
 	def interaction(self):
@@ -477,19 +481,13 @@ class InteractionObj(GameObject):
 								dialog_menu(i.dialogue,i.line_lenght,i.name,i.question)
 								i.talked += 1
 
-
 					if i.int_mode == 2:
 						left = i.rect.x-tales <= player.rect.x < i.rect.x and i.rect.y == player.rect.y
 						right = i.rect.x<player.rect.x <= i.rect.x + tales and i.rect.y == player.rect.y
 						top = i.rect.y - tales <= player.rect.y <= i.rect.y and i.rect.x == player.rect.x
 						bottom = i.rect.y <= player.rect.y <= i.rect.y + tales and i.rect.x == player.rect.x
 
-						#print(f'''
-	#left = {left}
-	#right = {right}
-	#top = {top}
-	#bottom = {bottom}
-	#''')
+
 
 						if left or right or top or bottom:
 
@@ -511,6 +509,11 @@ class InteractionObj(GameObject):
 						if player.in_front(i.rect):
 
 							print("INTERACTION!!!")
+
+							if i.custom:
+
+								i.times_activated += 1
+								return
 
 							if i.question == True:
 								i.answer = dialog_menu(i.dialogue,i.line_lenght,i.name,i.question)
@@ -838,8 +841,6 @@ class ScreenCollectable():
 					
 					return self.reached_max
 
-
-
 class Exit_zone():
 	def __init__(self,x,y,w,h):
 
@@ -952,13 +953,138 @@ class Wall(GameObject):
 		self.angle=angle
 		self.image=pg.transform.rotate(self.image,self.angle)
 
-# class Map():
-#     def __init__(self,image,w,h,map_tales,layout):
-#         self.image = pg.transform.scale(pg.image.load(image), (self.w , self.h))
-#         self.map_tales = map_tales
-#         self.w = w*map_tales
-#         self.h = h*map_tales
-#         self.layout = layout
+class PipefixMinigame():
+	def __init__(self):
+
+		self.completed = False
+
+		self.tapeWidth = 50
+		self.patches = []
+
+		self.surface = pg.Surface((500,500))
+		self.background = pg.transform.scale(pg.image.load("game pics/pipehole.png"),(500,500))
+
+		self.hole = [(166,283),(246,283),(246,203),(190,203),(208,246)]
+		self.hole_points_covered = []
+
+
+	def blit_patches(self):
+		for patch in self.patches: 
+			pg.draw.polygon(self.surface,"gray",patch)
+
+	def hole_cover_check(self) -> list: 
+		points_covered = []
+
+		for patch in self.patches: # patch: [(x0,y0),(x1,y1),(x2,y2),(x3,y3)]
+
+			trig1 = (patch[0],patch[1],patch[3])
+			trig2 = (patch[1],patch[2],patch[3])
+
+			for h_point in self.hole:
+				
+				if point_in_triangle(trig1[0],trig1[1],trig1[2],h_point) or point_in_triangle(trig2[0],trig2[1],trig2[2],h_point):
+					
+					if h_point not in points_covered:
+						points_covered.append(h_point)
+
+					print(f"{points_covered} Covered")
+		
+		return points_covered
+
+	def blit_hole(self):
+		for point in self.hole:
+			pg.draw.circle(self.surface,"red",point,5)
+
+	def calculate_tape_point(self,mouse_displacement, point) -> tuple:
+
+		displacement = mouse_displacement
+		tapeLenght = math.hypot(*displacement)
+
+		print(f"tapeLenght: {tapeLenght}")
+
+		theta = math.asin(displacement[1] / tapeLenght)
+		alpha = math.pi/2 - theta
+
+		print(f"Theta: {theta} | Alpha: {alpha}")
+		# print(f"Theta + Alpha = {theta + alpha} | pi/2: {math.pi/2}")
+
+		dis_y = math.sin(alpha) * self.tapeWidth/2
+		dis_x= math.cos(alpha) * self.tapeWidth/2
+		
+		if displacement[0] > 0:
+
+			dis_x = -dis_x  # idk why but it fixes everything
+
+		print(f"Displacement Y: {dis_y} , X: {dis_x}")
+
+		new_y1 = int(point[1] + dis_y)
+		new_x1 = int(point[0] + dis_x)
+
+		new_y2 = int(point[1] - dis_y)
+		new_x2 = int(point[0] - dis_x)
+
+		return ((new_x1 , new_y1),(new_x2 , new_y2))
+     
+	def update(self):
+
+		for event in pg.event.get():
+			if event.type == pg.QUIT:
+				pg.quit()
+			if event.type == pg.MOUSEBUTTONDOWN:
+
+				print(f"mouse: {mouse}")
+				
+				init_click = mouse
+
+			if event.type == pg.MOUSEBUTTONUP:
+
+				if "unfinishedTapePoint" not in globals():
+
+					initTapePoints = None
+					init_click = None
+
+				else:
+
+					self.patches.append(unfinishedTapePoint)
+					initTapePoints = None
+					init_click = None
+
+					hole_points_covered = self.hole_cover_check()
+
+					print(f"covered:{sorted(hole_points_covered)}\nhole:{sorted(self.hole)}")
+
+					if sorted(hole_points_covered) == sorted(self.hole):
+						print("PIPE FIXED!")
+						running = False
+
+
+		if "init_click" in globals() and init_click != None:
+			
+			# print(f"{init_click[0]} - {mouse[0]} , {init_click[1]} - {mouse[1]} | init_x - cur_x , init_y - cur_y")
+			mouse_displacement = ((mouse[0] - init_click[0]) , (mouse[1] - init_click[1]))
+			print(f"mouse_displacement = {mouse_displacement}")
+
+		# OUTPUT
+
+		self.surface.blit(self.background,(0,0))
+		
+		if "init_click" in globals() and init_click != None and mouse_displacement != (0,0) : # drawing unfinished tape
+			
+			initTapeSide = self.calculate_tape_point(mouse_displacement,init_click)
+			curentTapeSide = self.calculate_tape_point(mouse_displacement , mouse)
+			curentTapeSide = (curentTapeSide[1] , curentTapeSide[0])
+			
+			unfinishedTapePoint = initTapeSide + curentTapeSide
+			
+			print(f"unfinishedTapePoint: {unfinishedTapePoint}")
+			pg.draw.polygon(self.surface,"gray",unfinishedTapePoint)
+		
+		self.blit_patches() 
+
+	def draw(self):
+		w , h = screen.get_size()
+		screen.blit(self.surface,(w/2 - 250, h/2 - 250))
+
 
 # endregion Damn CLASSES
 
@@ -1081,7 +1207,7 @@ basement_stasa = [
 	'1111111111111111111111111',#1
 	'1111111111111111111111111',#2
 	'1111111111111111111111111',#3
-	'11100000000010100c0011111',#4
+	'111000000p0010100c0011111',#4
 	'1110000000001000000011111',#5
 	'111000000000100000000b111',#6
 	'1110000000001000000000111',#7
@@ -1127,7 +1253,7 @@ basement_yura = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura]
-startLevel = 5
+startLevel = 4
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1137,6 +1263,8 @@ intObj=[]
 item=[]
 smallInt = []
 screenCollectables = []
+
+pipefix = PipefixMinigame()
 
 map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
 map_chupep = pg.transform.scale(pg.image.load("game pics/chupep.png"),screen.get_size())
@@ -1408,7 +1536,9 @@ def map(kostil = None, up = None):
 					if basement_stasa[i][g] == "b":
 						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/box_empty.png",g*tales,i*tales,False,index = "box",h = 800))
 						screenCollectables.append(ScreenCollectable(screen_w/2 - 100,screen_h/2 - 100,200,200,"game pics/tape.png","tape"))
-						
+					if basement_stasa[i][g] == "p":
+						intObj.append(InteractionObj("",[""],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"pipe",True))
+
 
 		if choosenLevel == basement_yura:
 
@@ -1860,9 +1990,11 @@ def screencollectables_cycle(name = None,activate = None):
 			if collectable.reached_max:
 				screenCollectables.remove(collectable)
 
+
 # initializing something for map_blit():
 
 lastlevel = None   # We already have player.last_level but this thing here to initialize things at the start of each level.
+
 
 
 def map_blit(floor_only = None):
@@ -2125,7 +2257,18 @@ def map_blit(floor_only = None):
 						inventory.decrease("key")
 						unlock_door = True
 						
+				if obj.index == "pipe":
 
+					if obj.times_activated > 0 and inventory.get_amount("tape") == 0:
+						
+						obj.times_activated = 0
+						dialog_menu(["Need to find something to patch this pipe"], 30, "Rover",False)
+					
+					else:
+
+						minigame = pipefix
+						GAME_STATE = "Minigame"
+					
 
 			if len(intObj) == 0:
 				#print("inv =", inventory.get_amount("shovel"))
@@ -2573,6 +2716,7 @@ last = 0
 level1progress = 0
 happened = False
 controls_show = False
+minigame = None
 
 exitzone = Exit_zone(tales*16,tales*21,tales*2,tales)
 
@@ -2584,37 +2728,32 @@ while running:
 		#print(event)
 		if event.type == pg.QUIT:
 			running = False
-		#if event.type == pg.USEREVENT:
-			#player.controls()
 
 	mouse = pg.mouse.get_pos()
 	now = pg.time.get_ticks() #Current time number
-	#print("now =", now)
-	#screen.blit(Chickibamboni, (0,0))
 
+	if GAME_STATE == "Main":
 
+		map_blit()
 
-	map_blit()
+		player.reset()
 
+		map(up = True)
 
-	player.reset()
+		player.controls()
 
-	map(up = True)
+		inventory.inventory_cycle()
 
-	player.controls()
-	# player.teleport()
-	inventory.inventory_cycle()
-	fps_show()
-	check()
+		fps_show()
 
+	elif GAME_STATE == "Minigame":
+		
+		minigame.update()
+		minigame.draw()
 
 
 
 	if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
-
-
-
-
 
 		if level1progress == 0:
 			hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
@@ -2641,9 +2780,6 @@ while running:
 
 
 
-
-	# if choosenLevel == appartment:
-	#     if exitzone.rect.colliderect:
 
 
 #Put the game before this line
