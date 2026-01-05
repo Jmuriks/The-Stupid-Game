@@ -75,3 +75,4 @@ Dec 23: Finished fixpipe minigame on test.py need to polish it up and implicate 
 Dec 24 (11:59 pm): Polishing fixpipe. Have the idea how to make it a little more realistic, implementing idea now.
 Dec 28: still trying
 Jan 1: Was slacking off all winter break trying to come back. Finished fixpipe minigame, need to implicate in main code.
+Jan 2-3: trying to implicate fixpipe minigame in Game. tough.

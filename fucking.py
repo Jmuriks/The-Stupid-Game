@@ -967,6 +967,14 @@ class PipefixMinigame():
 		self.hole = [(166,283),(246,283),(246,203),(190,203),(208,246)]
 		self.hole_points_covered = []
 
+		self.init_click = None
+		self.mouse_displacement = None
+		self.unfinishedTapePoint = None
+
+		w , h = screen.get_size()
+		self.cordShiftX = w/2 - 250
+		self.cordShiftY = h/2 - 250
+		
 
 	def blit_patches(self):
 		for patch in self.patches: 
@@ -1026,58 +1034,59 @@ class PipefixMinigame():
 		return ((new_x1 , new_y1),(new_x2 , new_y2))
      
 	def update(self):
+		
+		mouse = pg.mouse.get_pos()
 
-		for event in pg.event.get():
-			if event.type == pg.QUIT:
-				pg.quit()
-			if event.type == pg.MOUSEBUTTONDOWN:
+		if event.type == pg.QUIT:
+			pg.quit()
+		if event.type == pg.MOUSEBUTTONDOWN:
+			print(f"mouse: {mouse}")
+			
+			self.init_click = mouse
 
-				print(f"mouse: {mouse}")
-				
-				init_click = mouse
+		if event.type == pg.MOUSEBUTTONUP:
+			
 
-			if event.type == pg.MOUSEBUTTONUP:
+			if self.unfinishedTapePoint == None:
 
-				if "unfinishedTapePoint" not in globals():
+				initTapePoints = None
+				self.init_click = None
 
-					initTapePoints = None
-					init_click = None
+			else:
 
-				else:
+				self.patches.append(self.unfinishedTapePoint)
+				initTapePoints = None
+				self.init_click = None
 
-					self.patches.append(unfinishedTapePoint)
-					initTapePoints = None
-					init_click = None
+				hole_points_covered = self.hole_cover_check()
 
-					hole_points_covered = self.hole_cover_check()
+				print(f"covered:{sorted(hole_points_covered)}\nhole:{sorted(self.hole)}")
 
-					print(f"covered:{sorted(hole_points_covered)}\nhole:{sorted(self.hole)}")
-
-					if sorted(hole_points_covered) == sorted(self.hole):
-						print("PIPE FIXED!")
-						running = False
+				if sorted(hole_points_covered) == sorted(self.hole):
+					print("PIPE FIXED!")
+					self.completed = True
 
 
-		if "init_click" in globals() and init_click != None:
+		if self.init_click != None:
 			
 			# print(f"{init_click[0]} - {mouse[0]} , {init_click[1]} - {mouse[1]} | init_x - cur_x , init_y - cur_y")
-			mouse_displacement = ((mouse[0] - init_click[0]) , (mouse[1] - init_click[1]))
-			print(f"mouse_displacement = {mouse_displacement}")
+			self.mouse_displacement = ((mouse[0] - self.init_click[0]) , (mouse[1] - self.init_click[1]))
+			print(f"mouse_displacement = {self.mouse_displacement}")
 
 		# OUTPUT
 
 		self.surface.blit(self.background,(0,0))
 		
-		if "init_click" in globals() and init_click != None and mouse_displacement != (0,0) : # drawing unfinished tape
+		if self.init_click != None and self.mouse_displacement != (0,0) : # drawing unfinished tape
 			
-			initTapeSide = self.calculate_tape_point(mouse_displacement,init_click)
-			curentTapeSide = self.calculate_tape_point(mouse_displacement , mouse)
+			initTapeSide = self.calculate_tape_point(self.mouse_displacement,self.init_click)
+			curentTapeSide = self.calculate_tape_point(self.mouse_displacement , mouse)
 			curentTapeSide = (curentTapeSide[1] , curentTapeSide[0])
 			
-			unfinishedTapePoint = initTapeSide + curentTapeSide
+			self.unfinishedTapePoint = initTapeSide + curentTapeSide
 			
-			print(f"unfinishedTapePoint: {unfinishedTapePoint}")
-			pg.draw.polygon(self.surface,"gray",unfinishedTapePoint)
+			print(f"unfinishedTapePoint: {self.unfinishedTapePoint}")
+			pg.draw.polygon(self.surface,"gray",self.unfinishedTapePoint)
 		
 		self.blit_patches() 
 
@@ -1209,7 +1218,7 @@ basement_stasa = [
 	'1111111111111111111111111',#3
 	'111000000p0010100c0011111',#4
 	'1110000000001000000011111',#5
-	'111000000000100000000b111',#6
+	'111000000000000000000b111',#6
 	'1110000000001000000000111',#7
 	'1110000000001000000000111',#8
 	'1110000000001100000000000',#9
@@ -1507,7 +1516,7 @@ def map(kostil = None, up = None):
 				player.set_direction(180)
 
 			else:
-				player.__init__(tales*11,tales*24,tales,tales,tales/8,"game pics/avatar.png")
+				player.__init__(tales*11,tales*24,tales,tales,tales/2,"game pics/avatar.png")
 				player.set_direction(90)
 
 			player.allowed_exits = [False,False,False,True]
@@ -1537,7 +1546,7 @@ def map(kostil = None, up = None):
 						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/box_empty.png",g*tales,i*tales,False,index = "box",h = 800))
 						screenCollectables.append(ScreenCollectable(screen_w/2 - 100,screen_h/2 - 100,200,200,"game pics/tape.png","tape"))
 					if basement_stasa[i][g] == "p":
-						intObj.append(InteractionObj("",[""],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"pipe",True))
+						intObj.append(InteractionObj("Rover",["aaaaaaaaaaaaaaa"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"pipe",True))
 
 
 		if choosenLevel == basement_yura:
@@ -1998,7 +2007,7 @@ lastlevel = None   # We already have player.last_level but this thing here to in
 
 
 def map_blit(floor_only = None):
-	global level1progress , happened , lastlevel
+	global level1progress , happened , lastlevel, GAME_STATE, minigame
 
 
 	if choosenLevel != lastlevel:
@@ -2261,11 +2270,14 @@ def map_blit(floor_only = None):
 
 					if obj.times_activated > 0 and inventory.get_amount("tape") == 0:
 						
-						obj.times_activated = 0
-						dialog_menu(["Need to find something to patch this pipe"], 30, "Rover",False)
-					
-					else:
+						print("Missing required item to Interact")
 
+						obj.times_activated = 0
+						dialog_menu(["Need to find something to patch this pipe"], 40, "Rover",False)
+					
+					elif inventory.get_amount("tape") > 0 and obj.times_activated > 0 and not pipefix.completed:
+
+						print("START MINIGAME")
 						minigame = pipefix
 						GAME_STATE = "Minigame"
 					
@@ -2732,6 +2744,8 @@ while running:
 	mouse = pg.mouse.get_pos()
 	now = pg.time.get_ticks() #Current time number
 
+	# print(f"Current GAME_STATE: {GAME_STATE}")
+
 	if GAME_STATE == "Main":
 
 		map_blit()
@@ -2750,6 +2764,9 @@ while running:
 		
 		minigame.update()
 		minigame.draw()
+		
+		if minigame.completed:
+			GAME_STATE = "Main"
 
 
 
