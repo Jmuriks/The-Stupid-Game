@@ -971,9 +971,8 @@ class PipefixMinigame():
 		self.mouse_displacement = None
 		self.unfinishedTapePoint = None
 
-		w , h = screen.get_size()
-		self.cordShiftX = w/2 - 250
-		self.cordShiftY = h/2 - 250
+		self.cordShiftX = None
+		self.cordShiftY = None
 		
 
 	def blit_patches(self):
@@ -1032,45 +1031,59 @@ class PipefixMinigame():
 		new_x2 = int(point[0] - dis_x)
 
 		return ((new_x1 , new_y1),(new_x2 , new_y2))
-     
+    
+	def shift_update(self):
+
+		w , h = screen.get_size()
+		self.cordShiftX = w/2 - 250
+		self.cordShiftY = h/2 - 250
+
 	def update(self):
 		
+
 		mouse = pg.mouse.get_pos()
+		local_mouse = (mouse[0] - self.cordShiftX , mouse[1] - self.cordShiftY)
+
+		
+
 
 		if event.type == pg.QUIT:
 			pg.quit()
-		if event.type == pg.MOUSEBUTTONDOWN:
-			print(f"mouse: {mouse}")
-			
-			self.init_click = mouse
 
-		if event.type == pg.MOUSEBUTTONUP:
-			
+		if 0 <= local_mouse[0] <= 500 and 0 <= local_mouse[1] <= 0:
 
-			if self.unfinishedTapePoint == None:
+			if event.type == pg.MOUSEBUTTONDOWN:
+				print(f"mouse: {mouse}")
+				
+				self.init_click = local_mouse
 
-				initTapePoints = None
-				self.init_click = None
+			if event.type == pg.MOUSEBUTTONUP:
+				
 
-			else:
+				if self.unfinishedTapePoint == None:
 
-				self.patches.append(self.unfinishedTapePoint)
-				initTapePoints = None
-				self.init_click = None
+					initTapePoints = None
+					self.init_click = None
 
-				hole_points_covered = self.hole_cover_check()
+				else:
 
-				print(f"covered:{sorted(hole_points_covered)}\nhole:{sorted(self.hole)}")
+					self.patches.append(self.unfinishedTapePoint)
+					initTapePoints = None
+					self.init_click = None
 
-				if sorted(hole_points_covered) == sorted(self.hole):
-					print("PIPE FIXED!")
-					self.completed = True
+					hole_points_covered = self.hole_cover_check()
+
+					print(f"covered:{sorted(hole_points_covered)}\nhole:{sorted(self.hole)}")
+
+					if sorted(hole_points_covered) == sorted(self.hole):
+						print("PIPE FIXED!")
+						self.completed = True
 
 
 		if self.init_click != None:
 			
 			# print(f"{init_click[0]} - {mouse[0]} , {init_click[1]} - {mouse[1]} | init_x - cur_x , init_y - cur_y")
-			self.mouse_displacement = ((mouse[0] - self.init_click[0]) , (mouse[1] - self.init_click[1]))
+			self.mouse_displacement = ((local_mouse[0] - self.init_click[0]) , (local_mouse[1] - self.init_click[1]))
 			print(f"mouse_displacement = {self.mouse_displacement}")
 
 		# OUTPUT
@@ -1080,7 +1093,7 @@ class PipefixMinigame():
 		if self.init_click != None and self.mouse_displacement != (0,0) : # drawing unfinished tape
 			
 			initTapeSide = self.calculate_tape_point(self.mouse_displacement,self.init_click)
-			curentTapeSide = self.calculate_tape_point(self.mouse_displacement , mouse)
+			curentTapeSide = self.calculate_tape_point(self.mouse_displacement , local_mouse)
 			curentTapeSide = (curentTapeSide[1] , curentTapeSide[0])
 			
 			self.unfinishedTapePoint = initTapeSide + curentTapeSide
@@ -1091,8 +1104,7 @@ class PipefixMinigame():
 		self.blit_patches() 
 
 	def draw(self):
-		w , h = screen.get_size()
-		screen.blit(self.surface,(w/2 - 250, h/2 - 250))
+		screen.blit(self.surface,(self.cordShiftX, self.cordShiftY))
 
 
 # endregion Damn CLASSES
@@ -2762,6 +2774,7 @@ while running:
 
 	elif GAME_STATE == "Minigame":
 		
+		minigame.shift_update()
 		minigame.update()
 		minigame.draw()
 		
