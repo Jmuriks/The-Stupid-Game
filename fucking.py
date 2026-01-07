@@ -994,7 +994,7 @@ class PipefixMinigame():
 					if h_point not in points_covered:
 						points_covered.append(h_point)
 
-					print(f"{points_covered} Covered")
+					# print(f"{points_covered} Covered")
 		
 		return points_covered
 
@@ -1035,25 +1035,24 @@ class PipefixMinigame():
 	def shift_update(self):
 
 		w , h = screen.get_size()
-		self.cordShiftX = w/2 - 250
-		self.cordShiftY = h/2 - 250
+		self.cordShiftX = int(w/2 - 250)
+		self.cordShiftY = int(h/2 - 250)
 
 	def update(self):
-		
+		# print("FIXPIPE UPDATE:")
 
 		mouse = pg.mouse.get_pos()
 		local_mouse = (mouse[0] - self.cordShiftX , mouse[1] - self.cordShiftY)
-
 		
-
+		# print(f"Fixpipe localmouse: {local_mouse}")
 
 		if event.type == pg.QUIT:
 			pg.quit()
 
-		if 0 <= local_mouse[0] <= 500 and 0 <= local_mouse[1] <= 0:
+		if 0 <= local_mouse[0] <= 500 and 0 <= local_mouse[1] <= 500:
 
 			if event.type == pg.MOUSEBUTTONDOWN:
-				print(f"mouse: {mouse}")
+				print(f"mouse: {local_mouse}")
 				
 				self.init_click = local_mouse
 
@@ -2749,7 +2748,7 @@ map()
 running=True
 while running:
 	for event in pg.event.get():
-		#print(event)
+		print(f"EVENT: {event}")
 		if event.type == pg.QUIT:
 			running = False
 

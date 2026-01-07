@@ -77,3 +77,4 @@ Dec 28: still trying
 Jan 1: Was slacking off all winter break trying to come back. Finished fixpipe minigame, need to implicate in main code.
 Jan 2-3: trying to implicate fixpipe minigame in Game. tough.
 Jan 6: trying.
+Jan 7: Need to add event list and all bugs are fixed | Pipefix minigame technically works.
