@@ -295,6 +295,8 @@ def point_in_circle(point_x,point_y,center_x,center_y,radius):
 
 	return distance_square <= radius**2
 
+def event_in_queue(event_type):
+	return any(event.type == event_type for event in event_queue)
 # endregion Homeless functions
 
 # region CLASSES
@@ -306,7 +308,7 @@ class Player(GameObject):
 		self.direction = 0
 		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction)
 		self.target = None
-		self.allowed_exits = [True,True,True,True]
+		self.allowed_exits = [True,True,True,True] # Top , Bottom , Left , Right.
 		self.current_level = None
 		self.last_level = None
 
@@ -824,22 +826,22 @@ class ScreenCollectable():
 			self.reached_max = True
 			return self.reached_max
 
-		for event in pg.event.get():
-			if event.type == pg.MOUSEBUTTONDOWN:
+
+		if event_in_queue(pg.MOUSEBUTTONDOWN):
+			
+			mouse_pos = pg.mouse.get_pos()
+
+			mouse_in_x = self.rect.x <= mouse_pos[0] <= (self.rect.x + self.w)
+			mouse_in_y = self.rect.y <= mouse_pos[1] <= (self.rect.y + self.h)
+
+			mouse_inside = mouse_in_x and mouse_in_y
+
+			if mouse_inside:
+
+				inventory.increase(self.name)
+				self.times_collected += 1
 				
-				mouse_pos = pg.mouse.get_pos()
-
-				mouse_in_x = self.rect.x <= mouse_pos[0] <= (self.rect.x + self.w)
-				mouse_in_y = self.rect.y <= mouse_pos[1] <= (self.rect.y + self.h)
-
-				mouse_inside = mouse_in_x and mouse_in_y
-
-				if mouse_inside:
-
-					inventory.increase(self.name)
-					self.times_collected += 1
-					
-					return self.reached_max
+				return self.reached_max
 
 class Exit_zone():
 	def __init__(self,x,y,w,h):
@@ -1051,12 +1053,12 @@ class PipefixMinigame():
 
 		if 0 <= local_mouse[0] <= 500 and 0 <= local_mouse[1] <= 500:
 
-			if event.type == pg.MOUSEBUTTONDOWN:
+			if event_in_queue(pg.MOUSEBUTTONDOWN):
 				print(f"mouse: {local_mouse}")
 				
 				self.init_click = local_mouse
 
-			if event.type == pg.MOUSEBUTTONUP:
+			if event_in_queue(pg.MOUSEBUTTONUP):
 				
 
 				if self.unfinishedTapePoint == None:
@@ -1268,11 +1270,24 @@ basement_yura = [
 	"11111111111111111111"
 ]
 
+final_appartment = [
+	"111111111111",
+	"123000000041",
+	"1000000000t1",
+	"100000005011",
+	"111101011011",
+	"160001000011",
+	"160001011111",
+	"10779100b0c1",
+	"1000110000c1",
+	"188001000a11",
+	"111111111111"
+]
 # endregion maps
 
 # region Objects init
 
-levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura]
+levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
 startLevel = 4
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
@@ -1559,7 +1574,6 @@ def map(kostil = None, up = None):
 					if basement_stasa[i][g] == "p":
 						intObj.append(InteractionObj("Rover",["aaaaaaaaaaaaaaa"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"pipe",True))
 
-
 		if choosenLevel == basement_yura:
 
 
@@ -1606,10 +1620,58 @@ def map(kostil = None, up = None):
 						walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/frog.png","frog",1))
 						effects.append(Effect(g*tales,i*tales,tales,tales,0,["boom1.png","boom2.png","boom3.png","boom4.png"],sizes_w=[30,40,60,80],sizes_h=[30,40,60,80],index = "exp",layer = 1))
 
+		if choosenLevel == final_appartment:
+
+			tales = 80
+			screen = pg.display.set_mode((tales*12,tales*11))
+			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
+
+			player.target = None
+			player.__init__(tales,tales*2,tales,tales,tales/8,"game pics/avatar.png")
+
+
+			print("map | CL = appartment")
+			screen.blit(map_app,(0,0,12*tales,11*tales))
+			for i in range(len(appartment)):
+				for g in range(len(appartment[i])):
+					if appartment[i][g] == "0":
+						floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/nothing.png"))
+					if appartment[i][g] == "1":
+						walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/nothing.png",0))
+					if appartment[i][g] == "2":
+						intObj.append(InteractionObj("Coat rack",["Coat rack"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "3":
+						intObj.append(InteractionObj("Rover",["Here is my keys","Dont need them now"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"keys"))
+					if appartment[i][g] == "4":
+						intObj.append(InteractionObj("Fridge",["*Fridge sounds*"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "5":
+						intObj.append(InteractionObj("Rover",["Notebook on kitchen table -_-"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "6":
+						intObj.append(InteractionObj("Rover",["Sleeping bag.","I already slept today"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False)) # Do you want to sleep? after those
+					if appartment[i][g] == "7":
+						intObj.append(InteractionObj("Rover",["Jacket on the floor.","Wasnt wearing it for a while"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False))
+					if appartment[i][g] == "8":
+						intObj.append(InteractionObj("Rover",["Wardrobe.","Not much in there"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "9":
+						intObj.append(InteractionObj("Rover",["Radio.","..."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "a":
+						intObj.append(InteractionObj("Rover",["Toilet."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "b":
+						intObj.append(InteractionObj("Rover",["the sink and mirror (that u cant see)"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "c":
+						intObj.append(InteractionObj("Rover",["Bath."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if appartment[i][g] == "t":
+						if inventory.get_amount("tea") == 0:
+							intObj.append(InteractionObj("Rover",["Make tea?"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,True, "tea"))
+						else:
+							walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/nothing.png",0))
+					
+
+
 	if kostil != None:
 		# Fixes the bug with player model on appartment map
 
-		if choosenLevel == appartment or choosenLevel == appartment_1:
+		if choosenLevel == appartment or choosenLevel == appartment_1 or choosenLevel == final_appartment:
 
 			# print("map | kostil found")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
@@ -1641,9 +1703,6 @@ def map(kostil = None, up = None):
 		for f in floor:
 			if f.layer == 0:
 				f.reset()
-
-
-
 
 	# print(f"level1progress = {level1progress}")
 
@@ -1678,7 +1737,7 @@ def map(kostil = None, up = None):
 player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
-def travel(name = None,dialogue = None, record=True )->None: #travel on other level
+def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #travel on other level
 	global last, choosenLevel, startLevel
 
 
@@ -1729,7 +1788,7 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
 				map()
 				return
 
-		if startLevel + 1 < len(levels):
+		if startLevel + 1 + jump_over < len(levels):
 
 
 			print("travel func began")
@@ -1745,7 +1804,7 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
 					print("travel | startlevel =", startLevel)
 
 					old_startLevel = startLevel
-					startLevel += 1
+					startLevel += 1 + jump_over
 
 					print("travel | new startlevel =", startLevel)
 
@@ -1823,7 +1882,7 @@ def travel(name = None,dialogue = None, record=True )->None: #travel on other le
 				pg.display.flip()
 				return True
 		else:
-			# print("travel | ran out of levels")
+			print("travel | ran out of levels")
 			if player.rect.y >= screen.get_height():
 				player.rect.y -= tales
 			if player.rect.y < 0:
@@ -2015,7 +2074,7 @@ def screencollectables_cycle(name = None,activate = None):
 
 lastlevel = None   # We already have player.last_level but this thing here to initialize things at the start of each level.
 
-
+event_queue = None
 
 def map_blit(floor_only = None):
 	global level1progress , happened , lastlevel, GAME_STATE, minigame
@@ -2279,6 +2338,9 @@ def map_blit(floor_only = None):
 						
 				if obj.index == "pipe":
 
+					if pipefix.completed:
+						obj.__init__("Rover",["Pipe looks like new"],obj.rect.x,obj.rect.y,obj.w,obj.h,0,"game pics/nothing.png",30,3,False,"fixed_pipe")
+					
 					if obj.times_activated > 0 and inventory.get_amount("tape") == 0:
 						
 						print("Missing required item to Interact")
@@ -2534,6 +2596,7 @@ def map_blit(floor_only = None):
 					pg.display.flip()
 
 			if choosenLevel == basement_stasa:
+				global event_queue
 
 				if smol.index == "chest":
 					
@@ -2674,26 +2737,30 @@ def map_blit(floor_only = None):
 
 					while interact:
 						
-						smol.reset_image_big()
+						event_queue = pg.event.get() 						
 
-						if inventory.get_amount("key") == 0:
-							screencollectables_cycle("key",True)				
-
-						for event in pg.event.get(): # Cycles man
+						for event in event_queue: # Cycles man
 							if event.type == pg.QUIT:
 								pg.quit()	
 
 						if pg.key.get_pressed()[pg.K_f]:
 							interact = False
 						
+						smol.reset_image_big()
+
+						if inventory.get_amount("key") == 0:
+							screencollectables_cycle("key",True)	
+
 						pg.display.flip()
 				
 				if smol.index == "box":
 					interact = smol.interaction()
 
 					while interact:
+						
+						event_queue = pg.event.get()
 
-						for event in pg.event.get():
+						for event in event_queue:
 							if event.type == pg.QUIT:
 								pg.quit()
 						
@@ -2705,10 +2772,7 @@ def map_blit(floor_only = None):
 						if inventory.get_amount("tape") == 0:
 							screencollectables_cycle("tape",True)						
 
-						pg.display.flip()
-						
-
-
+						pg.display.flip()						
 
 		for thing in item:
 			thing.reset()
@@ -2747,8 +2811,12 @@ menu()
 map()
 running=True
 while running:
-	for event in pg.event.get():
-		print(f"EVENT: {event}")
+	events = pg.event.get()
+	for event in events:
+		# print(f"EVENT: {event}")
+		event_queue = events
+		# print(f"EVENT_QUEUE: {event_queue}")
+
 		if event.type == pg.QUIT:
 			running = False
 
@@ -2781,7 +2849,6 @@ while running:
 			GAME_STATE = "Main"
 
 
-
 	if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
 
 		if level1progress == 0:
@@ -2806,7 +2873,12 @@ while running:
 		if level1progress >= 1:
 			hint_menu(["I should go check basement."],tales*8,tales,tales*2,0,40)
 
+	if choosenLevel == basement_stasa and pipefix.completed:
 
+		exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
+
+		if player.rect.colliderect(exit_stas.rect):
+			travel("Rover", ["Wanna leave?"],jump_over=1)
 
 
 
