@@ -1232,7 +1232,7 @@ basement_stasa = [
 	'1111111111111111111111111',#3
 	'111000000p0010100c0011111',#4
 	'1110000000001000000011111',#5
-	'111000000000000000000b111',#6
+	'111000000000100000000b111',#6
 	'1110000000001000000000111',#7
 	'1110000000001000000000111',#8
 	'1110000000001100000000000',#9
@@ -1543,7 +1543,7 @@ def map(kostil = None, up = None):
 				player.set_direction(180)
 
 			else:
-				player.__init__(tales*11,tales*24,tales,tales,tales/2,"game pics/avatar.png")
+				player.__init__(tales*11,tales*24,tales,tales,tales/8,"game pics/avatar.png")
 				player.set_direction(90)
 
 			player.allowed_exits = [False,False,False,True]
