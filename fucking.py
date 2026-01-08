@@ -9,7 +9,7 @@ clock = pg.time.Clock()
 
 pg.display.set_caption("Suchina")
 
-Chickibamboni=pg.image.load("game pics/CHIKIBAMBONI(O.M.).png")
+Chickibamboni=pg.transform.scale(pg.image.load("game pics/CHIKIBAMBONI(O.M.).png"),(80*12,80*11))
 
 
 GAME_STATE = "Main"
@@ -1078,6 +1078,7 @@ class PipefixMinigame():
 
 					if sorted(hole_points_covered) == sorted(self.hole):
 						print("PIPE FIXED!")
+						inventory.decrease("tape")
 						self.completed = True
 
 
@@ -1632,35 +1633,35 @@ def map(kostil = None, up = None):
 
 			print("map | CL = appartment")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
-			for i in range(len(appartment)):
-				for g in range(len(appartment[i])):
-					if appartment[i][g] == "0":
+			for i in range(len(final_appartment)):
+				for g in range(len(final_appartment[i])):
+					if final_appartment[i][g] == "0":
 						floor.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/nothing.png"))
-					if appartment[i][g] == "1":
+					if final_appartment[i][g] == "1":
 						walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/nothing.png",0))
-					if appartment[i][g] == "2":
+					if final_appartment[i][g] == "2":
 						intObj.append(InteractionObj("Coat rack",["Coat rack"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "3":
+					if final_appartment[i][g] == "3":
 						intObj.append(InteractionObj("Rover",["Here is my keys","Dont need them now"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"keys"))
-					if appartment[i][g] == "4":
+					if final_appartment[i][g] == "4":
 						intObj.append(InteractionObj("Fridge",["*Fridge sounds*"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "5":
+					if final_appartment[i][g] == "5":
 						intObj.append(InteractionObj("Rover",["Notebook on kitchen table -_-"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "6":
+					if final_appartment[i][g] == "6":
 						intObj.append(InteractionObj("Rover",["Sleeping bag.","I already slept today"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False)) # Do you want to sleep? after those
-					if appartment[i][g] == "7":
+					if final_appartment[i][g] == "7":
 						intObj.append(InteractionObj("Rover",["Jacket on the floor.","Wasnt wearing it for a while"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,1,False))
-					if appartment[i][g] == "8":
+					if final_appartment[i][g] == "8":
 						intObj.append(InteractionObj("Rover",["Wardrobe.","Not much in there"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "9":
+					if final_appartment[i][g] == "9":
 						intObj.append(InteractionObj("Rover",["Radio.","..."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "a":
+					if final_appartment[i][g] == "a":
 						intObj.append(InteractionObj("Rover",["Toilet."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "b":
-						intObj.append(InteractionObj("Rover",["the sink and mirror (that u cant see)"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "c":
-						intObj.append(InteractionObj("Rover",["Bath."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
-					if appartment[i][g] == "t":
+					if final_appartment[i][g] == "b":
+						intObj.append(InteractionObj("Rover",["Finally have water"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+					if final_appartment[i][g] == "c":
+						intObj.append(InteractionObj("Rover",["Take Bath?"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,True,"bath"))
+					if final_appartment[i][g] == "t":
 						if inventory.get_amount("tea") == 0:
 							intObj.append(InteractionObj("Rover",["Make tea?"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,True, "tea"))
 						else:
@@ -2112,6 +2113,30 @@ def map_blit(floor_only = None):
 				obj.reset()
 
 			obj.interaction()
+
+			if obj.index == "tea": # checking for int obj with index tea
+
+					if obj.times_activated > 10:
+						walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/nothing.png", 0))
+						intObj.remove(obj)
+
+					if obj.answer == True: # looking if answer is yes
+						inventory.increase("tea") # Giving tea
+						print("tea =", inventory.get_amount("tea"))
+
+					# Changing text after several tea
+
+						if 5 >obj.times_activated >= 1:
+							obj.change(obj.name,["More tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
+
+						elif 10 >obj.times_activated >= 5:
+							obj.change(obj.name,["More tea???"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
+
+						elif obj.times_activated == 10:
+							obj.change(obj.name,["Last tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
+
+						obj.answer = False
+
 			if choosenLevel == karta1:
 
 				if obj.image_route == "game pics/mo.png" or obj.image_route == "game pics/mo_down.png":
@@ -2180,28 +2205,7 @@ def map_blit(floor_only = None):
 						travel()
 
 			if choosenLevel == appartment_1:
-				if obj.index == "tea": # checking for int obj with index tea
-
-					if obj.times_activated > 10:
-						walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/nothing.png", 0))
-						intObj.remove(obj)
-
-					if obj.answer == True: # looking if answer is yes
-						inventory.increase("tea") # Giving tea
-						print("tea =", inventory.get_amount("tea"))
-
-					# Changing text after several tea
-
-						if 5 >obj.times_activated >= 1:
-							obj.change(obj.name,["More tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-
-						elif 10 >obj.times_activated >= 5:
-							obj.change(obj.name,["More tea???"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-
-						elif obj.times_activated == 10:
-							obj.change(obj.name,["Last tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-
-						obj.answer = False
+				
 
 				if obj.index == "sink":
 					if obj.talked >= 1:
@@ -2353,7 +2357,14 @@ def map_blit(floor_only = None):
 						print("START MINIGAME")
 						minigame = pipefix
 						GAME_STATE = "Minigame"
-					
+
+			if choosenLevel == final_appartment:
+
+				if obj.index == "bath":
+
+					if obj.answer:
+
+						GAME_STATE = "Credits"
 
 			if len(intObj) == 0:
 				#print("inv =", inventory.get_amount("shovel"))
@@ -2848,6 +2859,9 @@ while running:
 		if minigame.completed:
 			GAME_STATE = "Main"
 
+	elif GAME_STATE == "Credits":
+
+		screen.blit(Chickibamboni,(0,0))
 
 	if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
 
@@ -2876,6 +2890,7 @@ while running:
 	if choosenLevel == basement_stasa and pipefix.completed:
 
 		exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
+
 
 		if player.rect.colliderect(exit_stas.rect):
 			travel("Rover", ["Wanna leave?"],jump_over=1)
