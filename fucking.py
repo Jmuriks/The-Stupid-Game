@@ -1289,7 +1289,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 4
+startLevel = 2
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1734,6 +1734,7 @@ def map(kostil = None, up = None):
 				f.reset()
 
 				# KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
+
 
 player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
@@ -2878,6 +2879,10 @@ while running:
 		if level1progress == 3:
 			hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
 
+	if choosenLevel == appartment:
+
+		if level1progress == 0:
+			hint_menu(["You feel sleepy."],tales*8,tales,tales*2,0,40)
 
 	if choosenLevel == appartment_1:
 
