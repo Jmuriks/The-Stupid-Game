@@ -80,3 +80,4 @@ Jan 6: trying.
 Jan 7: Need to add event list and all bugs are fixed | Pipefix minigame technically works.
 Jan 7(Home): Pipefix working. need to fix minor bugs, add effect in basement, finish story and add sounds.
 Jan 8: Added simple ending when we go to bath, technically everything works just need to add details. Gonna close fixpipe branch.
+Jan 9: Added branch finishing up

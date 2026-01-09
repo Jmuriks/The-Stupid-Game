@@ -1257,7 +1257,7 @@ basement_stasa = [
 basement_yura = [
 	"1"*20,
 	"11111111111678911111",
-	"11111101000000000j11",
+	"1111h10c000000000j11",
 	"11000000000000000011",
 	"10000000000000000011",
 	"10000000000000000011",
@@ -1289,7 +1289,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 2
+startLevel = 5
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1620,6 +1620,14 @@ def map(kostil = None, up = None):
 					if basement_yura[i][g] == "j":
 						walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/frog.png","frog",1))
 						effects.append(Effect(g*tales,i*tales,tales,tales,0,["boom1.png","boom2.png","boom3.png","boom4.png"],sizes_w=[30,40,60,80],sizes_h=[30,40,60,80],index = "exp",layer = 1))
+					if basement_yura[i][g] == "h":
+						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/trava1.png",g*tales,i*tales,index = "hint"))
+					if basement_yura[i][g] == "c":
+						if inventory.get_amount("key") >0:
+							intObj.append(InteractionObj("Rover",["Key doesnt work here"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False))
+						else:
+							intObj.append(InteractionObj("Rover",["Chest is locked"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False))
+						
 
 		if choosenLevel == final_appartment:
 
@@ -2786,6 +2794,8 @@ def map_blit(floor_only = None):
 
 						pg.display.flip()						
 
+			smol.interaction()
+			
 		for thing in item:
 			thing.reset()
 			if thing.int_mode == 1:
