@@ -1232,7 +1232,7 @@ basement_stasa = [
 	'1111111111111111111111111',#3
 	'111000000p0010100c0011111',#4
 	'1110000000001000000011111',#5
-	'111000000000100000000b111',#6
+	'111000000000000000000b111',#6
 	'1110000000001000000000111',#7
 	'1110000000001000000000111',#8
 	'1110000000001100000000000',#9
@@ -1289,7 +1289,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 5
+startLevel = 4
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1415,7 +1415,7 @@ def map(kostil = None, up = None):
 					if karta1[i][g]==",":
 						walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/left_up_angle_zaborchik.png",0))
 					if karta1[i][g]==".":
-						smallInt.append(SmallInt(3,"game pics/grave_on_the_floor.png","game pics/CHIKIBAMBONI(O.M.).png",g*tales,i*tales,True))
+						smallInt.append(SmallInt(3,"game pics/grave_on_the_floor.png","game pics/boris.png",g*tales,i*tales,True))
 					if karta1[i][g]=="[":
 						intObj.append(InteractionObj("Rover",["I cant leave yet"],g*tales,i*tales,tales,tales,0,"game pics/zaborl.png",30,3,False,"exit"))
 					if karta1[i][g]=="]":
@@ -1543,7 +1543,7 @@ def map(kostil = None, up = None):
 				player.set_direction(180)
 
 			else:
-				player.__init__(tales*11,tales*24,tales,tales,tales/8,"game pics/avatar.png")
+				player.__init__(tales*11,tales*24,tales,tales,tales/2,"game pics/avatar.png")
 				player.set_direction(90)
 
 			player.allowed_exits = [False,False,False,True]
@@ -1621,9 +1621,9 @@ def map(kostil = None, up = None):
 						walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/frog.png","frog",1))
 						effects.append(Effect(g*tales,i*tales,tales,tales,0,["boom1.png","boom2.png","boom3.png","boom4.png"],sizes_w=[30,40,60,80],sizes_h=[30,40,60,80],index = "exp",layer = 1))
 					if basement_yura[i][g] == "h":
-						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/trava1.png",g*tales,i*tales,index = "hint"))
+						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/hint.png",g*tales,i*tales,index = "hint"))
 					if basement_yura[i][g] == "c":
-						if inventory.get_amount("key") >0:
+						if inventory.get_amount("key") > 0:
 							intObj.append(InteractionObj("Rover",["Key doesnt work here"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False))
 						else:
 							intObj.append(InteractionObj("Rover",["Chest is locked"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False))
@@ -1747,7 +1747,7 @@ def map(kostil = None, up = None):
 player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
-def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #travel on other level
+def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #travel on other level
 	global last, choosenLevel, startLevel
 
 
@@ -1841,7 +1841,10 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #tra
 
 					map()
 
-				# print("travel | map began")
+				else:
+
+					return False
+					
 			else:
 				print("FORCE TRAVEL:")
 				print("travel | startlevel =", startLevel)
@@ -2906,10 +2909,9 @@ while running:
 
 		exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
 
-
 		if player.rect.colliderect(exit_stas.rect):
-			travel("Rover", ["Wanna leave?"],jump_over=1)
-
+			if travel("Rover", ["Wanna leave?"],jump_over=1) == False:
+				player.rect.y -= tales
 
 
 
