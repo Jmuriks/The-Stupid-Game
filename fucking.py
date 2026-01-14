@@ -314,14 +314,14 @@ class Player(GameObject):
 
 	def in_front(self,obj_rect):
 
-		if self.direction == 0: # E
-			dir_rect = pg.Rect(self.rect.x+tales, self.rect.y,tales,tales)
-		if self.direction == 90: # N
-			dir_rect = pg.Rect(self.rect.x, self.rect.y - tales,tales,tales)
-		if self.direction == 180: # W
-			dir_rect = pg.Rect(self.rect.x-tales, self.rect.y,tales,tales)
-		if self.direction == 270: # S
+		if self.direction == 0: # N
+			dir_rect = pg.Rect(self.rect.x, self.rect.y-tales,tales,tales)
+		if self.direction == 90: # W
+			dir_rect = pg.Rect(self.rect.x-tales, self.rect.y ,tales,tales)
+		if self.direction == 180: # S
 			dir_rect = pg.Rect(self.rect.x, self.rect.y + tales,tales,tales)
+		if self.direction == 270: # E
+			dir_rect = pg.Rect(self.rect.x+ tales, self.rect.y,tales,tales)
 
 		if dir_rect.colliderect(obj_rect):
 			return True
@@ -1106,6 +1106,10 @@ class PipefixMinigame():
 		self.blit_patches() 
 
 	def draw(self):
+		pg.draw.rect(screen,(15, 23, 42),(self.cordShiftX, self.cordShiftY-75, 500, 80),)
+
+		print_text(screen,"Hold LMB to patch up pipe","Comic Sans",36,self.cordShiftX+30, self.cordShiftY-60)
+
 		screen.blit(self.surface,(self.cordShiftX, self.cordShiftY))
 
 
@@ -1631,7 +1635,6 @@ def map(kostil = None, up = None):
 						else:
 							intObj.append(InteractionObj("Rover",["Chest is locked"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False))
 						
-
 		if choosenLevel == final_appartment:
 
 			tales = 80
@@ -1639,7 +1642,7 @@ def map(kostil = None, up = None):
 			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
 
 			player.target = None
-			player.__init__(tales,tales*2,tales,tales,tales/8,"game pics/avatar.png")
+			player.__init__(tales,tales*2,tales,tales,tales/8,"game pics/TheRover_concept.png")
 
 
 			print("map | CL = appartment")
@@ -2920,6 +2923,9 @@ while running:
 			if travel("Rover", ["Wanna leave?"],jump_over=1) == False:
 				player.rect.y -= tales
 
+	if choosenLevel == final_appartment and GAME_STATE == "Main":
+
+		hint_menu(["I wanna take a bath."],tales*8,tales,tales*2,0,40)
 
 
 #Put the game before this line

@@ -83,3 +83,4 @@ Jan 8: Added simple ending when we go to bath, technically everything works just
 Jan 9: Added branch finishing up
 Jan 12: added hint sheet for lamp puzzle, drawed animation for pipe leaking.
 Jan 13: added a new player model concept, implemented pipe leaking animation, minor bug fixes along the way.
+Jan 14: Added hint to final level, added UI to Pipefix minigame.
