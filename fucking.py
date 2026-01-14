@@ -416,16 +416,16 @@ class Player(GameObject):
 
 		if self.target == None: # Проверяем что нету цели <3
 			if pg.key.get_pressed()[pg.K_a]:
-				self.set_direction(180)
+				self.set_direction(90)
 				self.set_target(-1,0)
 			elif pg.key.get_pressed()[pg.K_d]:
-				self.set_direction(0)
+				self.set_direction(270)
 				self.set_target(1, 0)
 			elif pg.key.get_pressed()[pg.K_w]:
-				self.set_direction(90)
+				self.set_direction(0)
 				self.set_target(0, -1)
 			elif pg.key.get_pressed()[pg.K_s]:
-				self.set_direction(270)
+				self.set_direction(180)
 				self.set_target(0, 1)
 
 
@@ -902,7 +902,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 		sizes_h = self.sizes_h
 
 		# print(f"Effect | times done: {times_done} < times max: {times_max}")
-		if times_done < times_max:
+		if times_done < times_max or times_max == -1:
 			# print(f"Effect | Now: {now} - Last: {last} = {now-last} >= Delay: {delay}")
 			if now-last >= delay:
 
@@ -912,13 +912,13 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 					self.anim_turn += 1
 					self.anim_last = now
 
-					print(f"Effect | Animation sprite changed ")
+					# print(f"Effect | Animation sprite changed ")
 
 				else:
 					self.anim_loops_done +=1
 					self.anim_turn = 0
 
-					print("Effect | Cycle of animation done")
+					# print("Effect | Cycle of animation done")
 
 		else:
 			self.image = None   # Might have some errors because image wasnt suppose to be None
@@ -941,11 +941,11 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
 			return
 		else:
-			print(f"Effects | intit_x + tales/2 - size_w/2 | {self.init_x} + {tales/2} - {self.sizes_w[turn]/2} | turn = {turn}")
-			print(f"Effects | intit_y + tales/2 - size_w/2 | {self.init_y} + {tales/2} - {self.sizes_h[turn]/2} | turn = {turn}")
+			# print(f"Effects | intit_x + tales/2 - size_w/2 | {self.init_x} + {tales/2} - {self.sizes_w[turn]/2} | turn = {turn}")
+			# print(f"Effects | intit_y + tales/2 - size_w/2 | {self.init_y} + {tales/2} - {self.sizes_h[turn]/2} | turn = {turn}")
 			self.rect.x = self.init_x + tales/2 - self.sizes_w[turn]/2
 			self.rect.y = self.init_y + tales/2 - self.sizes_h[turn]/2
-			print(f"Effects | x: {self.rect.x} y: {self.rect.y}")
+			# print(f"Effects | x: {self.rect.x} y: {self.rect.y}")
 
 			self.image = self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
 
@@ -1539,12 +1539,12 @@ def map(kostil = None, up = None):
 			screen = pg.display.set_mode((tales*25,tales*25))
 
 			if player.last_level == 5:
-				player.__init__(tales*24,tales*9,tales,tales,tales/8,"game pics/avatar.png")
+				player.__init__(tales*24,tales*9,tales,tales,tales/8,player.image_route)
 				player.set_direction(180)
 
 			else:
-				player.__init__(tales*11,tales*24,tales,tales,tales/2,"game pics/avatar.png")
-				player.set_direction(90)
+				player.__init__(tales*11,tales*24,tales,tales,tales/2,player.image_route)
+				player.set_direction(0)
 
 			player.allowed_exits = [False,False,False,True]
 
@@ -1574,6 +1574,9 @@ def map(kostil = None, up = None):
 						screenCollectables.append(ScreenCollectable(screen_w/2 - 100,screen_h/2 - 100,200,200,"game pics/tape.png","tape"))
 					if basement_stasa[i][g] == "p":
 						intObj.append(InteractionObj("Rover",["aaaaaaaaaaaaaaa"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"pipe",True))
+						
+						animSpriteList = ["anim/water_drop1.png","anim/water_drop2.png","anim/water_drop3.png","anim/water_drop4.png","anim/water_drop5.png"]
+						effects.append(Effect(g*tales,i*tales,tales,tales,1,animSpriteList,index = "pipe_leak",layer=1))
 
 		if choosenLevel == basement_yura:
 
@@ -1744,8 +1747,16 @@ def map(kostil = None, up = None):
 				# KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
 
 
-player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
+player = Player(tales,tales,tales,tales,tales/8,"game pics/TheRover_concept.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
+
+def clear_map():
+	floor.clear()
+	walls.clear()
+	intObj.clear()
+	item.clear()
+	smallInt.clear()
+	effects.clear()
 
 def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #travel on other level
 	global last, choosenLevel, startLevel
@@ -1777,11 +1788,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 
 				print(f"travel | new startLevel = {startLevel}")
 
-				floor.clear()
-				walls.clear()
-				intObj.clear()
-				item.clear()
-				smallInt.clear()
+				clear_map()
 
 				print("travel | map lists cleared")
 
@@ -1858,11 +1865,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 
 				# print("travel | CL =",choosenLevel)
 
-				floor.clear()
-				walls.clear()
-				intObj.clear()
-				item.clear()
-				smallInt.clear()
+				clear_map()
 
 				print("travel | map lists cleared")
 
@@ -1886,12 +1889,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 				player.rect.x -= tales
 			if player.rect.x < 0:
 				player.rect.x += tales
-
-
-
-
-
-
+				
 				pg.display.flip()
 				return True
 		else:
@@ -2394,6 +2392,15 @@ def map_blit(floor_only = None):
 
 				if puzzle_won:
 					ef.run_animation(speed = 4)
+
+			if choosenLevel == basement_stasa:
+				
+				if not pipefix.completed:
+					ef.run_animation(1.2,-1)
+				
+				else:
+					
+					effects.remove(ef)
 
 		for i in floor:
 			if startLevel < 3:
