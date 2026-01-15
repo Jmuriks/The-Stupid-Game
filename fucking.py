@@ -1642,7 +1642,7 @@ def map(kostil = None, up = None):
 			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
 
 			player.target = None
-			player.__init__(tales,tales*2,tales,tales,tales/8,"game pics/TheRover_concept.png")
+			player.__init__(tales,tales*2,tales,tales,tales/8,player.image_route)
 
 
 			print("map | CL = appartment")
@@ -1750,7 +1750,7 @@ def map(kostil = None, up = None):
 				# KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
 
 
-player = Player(tales,tales,tales,tales,tales/8,"game pics/TheRover_concept.png")
+player = Player(tales,tales,tales,tales,tales/8,"game pics/rover/TheRoverIdle.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
 def clear_map():
