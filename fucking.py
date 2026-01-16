@@ -302,7 +302,7 @@ def event_in_queue(event_type):
 # region CLASSES
 
 class Player(GameObject):
-	def __init__(self, x, y, w, h, speed, image,):
+	def __init__(self, x, y, w, h, speed, image, animation_route):
 		super().__init__(x, y, w, h, speed, image)
 
 		self.direction = 0
@@ -311,6 +311,18 @@ class Player(GameObject):
 		self.allowed_exits = [True,True,True,True] # Top , Bottom , Left , Right.
 		self.current_level = None
 		self.last_level = None
+
+		self.animation_route = animation_route
+		self.last_anim = None
+		self.anim_turn = 0
+
+		if self.animation_route != None:
+
+			for anim in self.animation_route:
+				
+				img = pg.transform.scale(pg.image.load(anim),(tales,tales))
+
+				self.animation = [img]
 
 	def in_front(self,obj_rect):
 
@@ -442,6 +454,18 @@ class Player(GameObject):
 
 				self.rect.x = x_tile     #Moving player
 				self.rect.y = y_tile
+
+	def animate(self):
+
+		if self.last_anim != None or self.last_anim == self.animation[-1]:
+
+			self.anim_turn = 0
+		
+		self.last_anim = self.image
+		self.image = pg.transform.rotate(self.animation[self.anim_turn],self.direction)
+		self.anim_turn += 1
+
+		# add check for self.target | then do delays and shit.
 
 
 class InteractionObj(GameObject):
