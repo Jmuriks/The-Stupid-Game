@@ -411,9 +411,9 @@ class Player(GameObject):
 			dis_y = self.rect.y - final_y
 
 			if dis_x != 0:
-				self.move_progress = 1 - (dis_x/tales)
+				self.move_progress = 1 - abs(dis_x/tales)
 			if dis_y != 0:
-				self.move_progress = 1 - (dis_y/tales)
+				self.move_progress = 1 - abs(dis_y/tales)
 
 			if final_x < self.rect.x:
 				self.rect.x -= self.speed
@@ -439,6 +439,8 @@ class Player(GameObject):
 					self.rect.y = final_y
 					self.target = None # Обнуляем цель после движения
 					self.move_progress = None
+
+			print(f"Player move progresss: {self.move_progress}")
 
 	def controls(self):
 		#
@@ -482,19 +484,25 @@ class Player(GameObject):
 		if self.target != None:
 			
 			part_size = 1/len(self.animation)
-			parts = len(self.animation)
 
-			
+			if self.move_progress == None:
 
-			max_turn = len(self.animation)
+				self.image = pg.transform.rotate(pg.transform.scale(pg.image.load("game pics/rover/TheRoverIdle.png"),(tales,tales)), self.direction)
+				return
 
-			if self.anim_turn == max_turn:
+			elif self.move_progress < part_size:
+
 				self.anim_turn = 0
+
+			elif self.move_progress > part_size:
+
+				self.anim_turn = 1
+
 			
 			self.last_anim = pg.transform.rotate(self.image,0-self.direction)
 
 			self.image = pg.transform.rotate(self.animation[self.anim_turn],self.direction)
-			self.anim_turn += 1
+
 
 		# add check for self.target | then do delays and shit.
 
@@ -942,7 +950,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 		else:
 			self.sizes_h = sizes_h
 
-	def animation(self, speed = 1, times_max = 1) -> True:
+	def animation(self, speed = 1, times_max = 1, centerize = True) -> True:
 		global now
 
 		# Initializating variables
@@ -954,17 +962,14 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 
 		delay = int(500 / speed)
 
-		sizes_w = self.sizes_w
-		sizes_h = self.sizes_h
-
 		# print(f"Effect | times done: {times_done} < times max: {times_max}")
 		if times_done < times_max or times_max == -1:
 			# print(f"Effect | Now: {now} - Last: {last} = {now-last} >= Delay: {delay}")
 			if now-last >= delay:
 
 				if turn != len(sprites):
-
-					self.set_image_to_center(turn)
+					
+					self.set_image_to_center(turn, centerize)
 					self.anim_turn += 1
 					self.anim_last = now
 
@@ -990,8 +995,8 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 		if not self.animation_finished:
 			self.animation(speed,times_max)
 
-	def set_image_to_center(self,turn):
-		if self.sizes_w[turn] == tales and self.sizes_h[turn] == tales:
+	def set_image_to_center(self,turn, dont = False):
+		if self.sizes_w[turn] == tales and self.sizes_h[turn] == tales or dont:
 			self.rect.x = self.init_x
 			self.rect.y = self.init_y
 			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
@@ -1003,7 +1008,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 			self.rect.y = self.init_y + tales/2 - self.sizes_h[turn]/2
 			# print(f"Effects | x: {self.rect.x} y: {self.rect.y}")
 
-			self.image = self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
+			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
 
 class Wall(GameObject):
 	def __init__(self, x, y, w, h, speed, image, angle = 0):
@@ -1231,17 +1236,17 @@ karta1 = [
 ]
 
 chupep = [
-	'0000000000000000100000000000000000000000',
 	'0000000000000000110000000000000000000000',
-	'0000000000000000110000000000000000000000',
+	'0000000000000000111000000000000000000000',
+	'0000000000000000111000000000000000000000',
+	'0000000000000000111000001000000000000000',
+	'0000000000000000110000001000000011000000',
+	'0000000000000000111000000000000000000100',
 	'0000000000000000110000001000000000000000',
-	'0000000000000000100000001000000011000000',
-	'0000000000000000110000000000000000000100',
-	'0000000000000000100000001000000000000000',
-	'0000000000000000110000000000000000000000',
-	'0000000000000000110000001000001100000000',
-	'1100000000000000110000001000000000000000',
-	'0111111111111111100000000000000000000000',
+	'0000000000000000111000000000000000000000',
+	'0000000000000000111000001000001100000000',
+	'1100000000000000111000001000000000000000',
+	'0111111111111111110000000000000000000000',
 	'0000000000000000000000001000000000000000',
 	'0010001000100010010010000000000000011000',
 	'0000000000000000000000000000000000000000',
@@ -1349,7 +1354,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 4
+startLevel = 0
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1400,6 +1405,9 @@ def map(kostil = None, up = None):
 			player.rect.x , player.rect.y =(tales*16,tales*21)
 
 			print ("map | CL = karta1")
+			
+			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
+
 			for i in range(len(karta1)):
 				#print("i =", i)
 				for g in range(len(karta1[i])):
@@ -1489,6 +1497,8 @@ def map(kostil = None, up = None):
 			player.allowed_exits = [True,False,False,False]
 
 			screen.blit(map_chupep,(0,0,screen.get_width(),screen.get_height()))
+
+			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
 			for i in range(len(chupep)):
 				for g in range(len(chupep[i])):
 					if chupep[i][g] == "0":
@@ -2440,6 +2450,18 @@ def map_blit(floor_only = None):
 				if inventory.get_amount("shovel") != 0:
 					inventory.decrease("shovel")
 		for ef in effects:
+			
+			if choosenLevel == karta1:
+
+				if ef.index == "rain":
+
+					ef.run_animation(1,-1)
+
+			if choosenLevel == chupep:
+
+				if ef.index == "rain":
+
+					ef.run_animation(1,-1)
 
 			if choosenLevel == basement_yura:
 

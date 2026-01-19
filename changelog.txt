@@ -87,3 +87,4 @@ Jan 14: Added hint to final level, added UI to Pipefix minigame.
 Jan 14(Home): Drawed Player model and animation.
 Jan 16: started work on player animation.
 Jan 18: Still started </3  T-T
+Jan 19: Finished player animation, Added rain on first two maps. Tomorrow Doing sounds.
