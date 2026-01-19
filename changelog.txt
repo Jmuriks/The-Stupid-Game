@@ -86,3 +86,4 @@ Jan 13: added a new player model concept, implemented pipe leaking animation, mi
 Jan 14: Added hint to final level, added UI to Pipefix minigame.
 Jan 14(Home): Drawed Player model and animation.
 Jan 16: started work on player animation.
+Jan 18: Still started </3  T-T

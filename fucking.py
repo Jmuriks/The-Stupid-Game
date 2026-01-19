@@ -302,12 +302,16 @@ def event_in_queue(event_type):
 # region CLASSES
 
 class Player(GameObject):
-	def __init__(self, x, y, w, h, speed, image, animation_route):
+
+	walk_anim = ["game pics/rover/TheRoverMove1.png","game pics/rover/TheRoverMove2.png"]
+
+	def __init__(self, x, y, w, h, speed, image, animation_route = walk_anim):
 		super().__init__(x, y, w, h, speed, image)
 
 		self.direction = 0
 		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction)
 		self.target = None
+		self.move_progress = None
 		self.allowed_exits = [True,True,True,True] # Top , Bottom , Left , Right.
 		self.current_level = None
 		self.last_level = None
@@ -315,14 +319,17 @@ class Player(GameObject):
 		self.animation_route = animation_route
 		self.last_anim = None
 		self.anim_turn = 0
+		self.animation = []
 
 		if self.animation_route != None:
 
 			for anim in self.animation_route:
 				
-				img = pg.transform.scale(pg.image.load(anim),(tales,tales))
+				img = pg.transform.scale(pg.image.load(anim),(tales,tales))				
 
-				self.animation = [img]
+				self.animation.append(img)
+
+		
 
 	def in_front(self,obj_rect):
 
@@ -340,22 +347,22 @@ class Player(GameObject):
 		else:
 			return False
 
-	def set_direction(self,dir_final: int) -> None:
-		# in_dir + y = dir_final
-		# y = dir_final - in_dir
+	def set_direction(self,dir_final: int, change_image = True) -> None:
+
 		if self.direction != dir_final:
-			# print(f"Wanted dir_final = {dir_final}")
 
 			dir_change = dir_final - self.direction
 
-			# print(f"in_dir + dir_change = dir_final: {self.direction} + {dir_change} = {dir_final}")
-
 			self.direction = self.direction + dir_change
 
+			if change_image:
 
-			self.image = pg.transform.rotate(self.image,dir_change)
+				self.image = pg.transform.rotate(self.image,dir_change)
 
-			# print(f"Player dir: {self.direction}")
+			else:
+				img = pg.transform.rotate(self.image,dir_change)
+				return img
+			
 
 	def set_target(self,goingx,goingy):
 
@@ -395,28 +402,43 @@ class Player(GameObject):
 		if not collide_walls and not collide_intobj2 and not collide_intobj3 and not collide_smalint2 and not collide_smalint3 and not canceled:
 			self.target = (new_x, new_y)
 
+			
+
 	def move_to_target(self):
 			final_x, final_y = self.target
+
+			dis_x = self.rect.x - final_x
+			dis_y = self.rect.y - final_y
+
+			if dis_x != 0:
+				self.move_progress = 1 - (dis_x/tales)
+			if dis_y != 0:
+				self.move_progress = 1 - (dis_y/tales)
+
 			if final_x < self.rect.x:
 				self.rect.x -= self.speed
 				if self.rect.x <= final_x:
 					self.rect.x = final_x
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
 			if final_x > self.rect.x:
 				self.rect.x += self.speed
 				if self.rect.x >= final_x:
 					self.rect.x = final_x
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
 			if final_y < self.rect.y:
 				self.rect.y -= self.speed
 				if self.rect.y <= final_y:
 					self.rect.y = final_y
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
 			if final_y > self.rect.y:
 				self.rect.y += self.speed
 				if self.rect.y >= final_y:
 					self.rect.y = final_y
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
 
 	def controls(self):
 		#
@@ -440,7 +462,7 @@ class Player(GameObject):
 				self.set_direction(180)
 				self.set_target(0, 1)
 
-
+			
 
 		if self.target:
 			self.move_to_target()
@@ -457,16 +479,26 @@ class Player(GameObject):
 
 	def animate(self):
 
-		if self.last_anim != None or self.last_anim == self.animation[-1]:
+		if self.target != None:
+			
+			part_size = 1/len(self.animation)
+			parts = len(self.animation)
 
-			self.anim_turn = 0
-		
-		self.last_anim = self.image
-		self.image = pg.transform.rotate(self.animation[self.anim_turn],self.direction)
-		self.anim_turn += 1
+			
+
+			max_turn = len(self.animation)
+
+			if self.anim_turn == max_turn:
+				self.anim_turn = 0
+			
+			self.last_anim = pg.transform.rotate(self.image,0-self.direction)
+
+			self.image = pg.transform.rotate(self.animation[self.anim_turn],self.direction)
+			self.anim_turn += 1
 
 		# add check for self.target | then do delays and shit.
 
+player = Player(tales,tales,tales,tales,tales/8,"game pics/rover/TheRoverIdle.png")
 
 class InteractionObj(GameObject):
 	def __init__(self,name,dialogue, x, y, w, h, speed, image_route,line_lenght,int_mode,question,index = None, custom = False):
@@ -1774,7 +1806,6 @@ def map(kostil = None, up = None):
 				# KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
 
 
-player = Player(tales,tales,tales,tales,tales/8,"game pics/rover/TheRoverIdle.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
 def clear_map():
@@ -2888,8 +2919,9 @@ while running:
 
 		map_blit()
 
+		player.animate()
 		player.reset()
-
+		
 		map(up = True)
 
 		player.controls()
