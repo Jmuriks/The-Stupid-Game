@@ -3,6 +3,8 @@ import random
 import math
 from time import sleep
 pg.init()
+pg.mixer.init()
+
 tales = 40
 screen=pg.display.set_mode((tales*40,tales*25))
 clock = pg.time.Clock()
@@ -1187,6 +1189,17 @@ class PipefixMinigame():
 
 		screen.blit(self.surface,(self.cordShiftX, self.cordShiftY))
 
+class Sound():
+	def __init__(self,sound_route,index):
+		self.sound = pg.mixer.Sound(sound_route)
+		self.index = index
+
+		self.times_played = 0
+
+	def play(self):
+		
+		self.sound.play()
+		self.times_played += 1
 
 # endregion Damn CLASSES
 
@@ -1368,7 +1381,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 0
+startLevel = 5
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1378,6 +1391,7 @@ intObj=[]
 item=[]
 smallInt = []
 screenCollectables = []
+sounds = {}
 
 pipefix = PipefixMinigame()
 
@@ -1681,6 +1695,8 @@ def map(down = None, up = None):
 			togo_levels = basement_stasa
 
 			print (f"togo_levels during map = {togo_levels}")
+
+			sounds["boom"] = pg.mixer.Sound("sounds/gep.wav")
 
 			for i in range(len(basement_yura)):
 				for g in range(len(basement_yura[i])):
@@ -2479,6 +2495,9 @@ def map_blit(floor_only = None):
 
 				if puzzle_won:
 					ef.run_animation(speed = 4)
+
+					if not pg.mixer.get_busy():
+						sounds["boom"].play()
 
 			if choosenLevel == basement_stasa:
 				
