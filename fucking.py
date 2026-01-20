@@ -22,7 +22,7 @@ class GameObject():
 	def __init__(self,x,y,w,h,speed,image_route,index = None,layer = 0):
 		if image_route != None:
 
-			self.image = pg.transform.scale(pg.image.load(image_route),(w,h))
+			self.image = pg.transform.scale(pg.image.load(image_route),(w,h)).convert_alpha()
 			self.rect= self.image.get_rect()
 			self.rect.x=x
 			self.rect.y=y
@@ -147,13 +147,21 @@ def dialog_menu(dialogue, line_lenght,name,question):
 
 	w =screen.get_width()
 	h =screen.get_height()
+
 	page = 0
 	page_text = dialogue[page]
+
 	fontName = pg.font.SysFont("Comic Sans", 55)
 	fontTalk = pg.font.SysFont("Comic Sans", 55)
+	fontF = pg.font.SysFont("Comic Sans", 55)
+
 	#print(f"[DEBUG] name = {name} | type = {type(name)}")
+
+	f = fontF.render("F >>>",True,(100,100,255))
 	name_out = fontName.render(name, True ,"white")
 	last = 0
+
+	
 
 	# Relative sizes and positions
 	dialog_x = w * 0.0625
@@ -167,6 +175,9 @@ def dialog_menu(dialogue, line_lenght,name,question):
 	name_box_y = h * 0.575
 	name_box_width = w * 0.25
 	name_box_height = h * 0.075
+
+	f_x = dialog_x + dialog_width - 200
+	f_y = dialog_y + dialog_height - 100
 
 
 	interaction = True
@@ -188,6 +199,9 @@ def dialog_menu(dialogue, line_lenght,name,question):
 		pg.draw.rect(dialog_surface, (15, 23, 42), [dialog_x, dialog_y, dialog_width, dialog_height])
 		# Name Box
 		pg.draw.rect(dialog_surface, ("gray"), [name_box_x, name_box_y, name_box_width, name_box_height])
+		# F to continue
+		dialog_surface.blit(f,(f_x,f_y))
+
 
 		#Divide dialogue in several segments
 		page_text = dialogue[page]
@@ -302,48 +316,67 @@ def event_in_queue(event_type):
 # region CLASSES
 
 class Player(GameObject):
-	def __init__(self, x, y, w, h, speed, image,):
+
+	walk_anim = ["game pics/rover/TheRoverMove1.png","game pics/rover/TheRoverMove2.png"]
+
+	def __init__(self, x, y, w, h, speed, image, animation_route = walk_anim):
 		super().__init__(x, y, w, h, speed, image)
 
 		self.direction = 0
-		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction)
+		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction).convert_alpha()
 		self.target = None
+		self.move_progress = None
 		self.allowed_exits = [True,True,True,True] # Top , Bottom , Left , Right.
 		self.current_level = None
 		self.last_level = None
 
+		self.animation_route = animation_route
+		self.last_anim = None
+		self.anim_turn = 0
+		self.animation = []
+
+		if self.animation_route != None:
+
+			for anim in self.animation_route:
+				
+				img = pg.transform.scale(pg.image.load(anim),(tales,tales)).convert_alpha()
+
+				self.animation.append(img)
+
+		
+
 	def in_front(self,obj_rect):
 
-		if self.direction == 0: # E
-			dir_rect = pg.Rect(self.rect.x+tales, self.rect.y,tales,tales)
-		if self.direction == 90: # N
-			dir_rect = pg.Rect(self.rect.x, self.rect.y - tales,tales,tales)
-		if self.direction == 180: # W
-			dir_rect = pg.Rect(self.rect.x-tales, self.rect.y,tales,tales)
-		if self.direction == 270: # S
+		if self.direction == 0: # N
+			dir_rect = pg.Rect(self.rect.x, self.rect.y-tales,tales,tales)
+		if self.direction == 90: # W
+			dir_rect = pg.Rect(self.rect.x-tales, self.rect.y ,tales,tales)
+		if self.direction == 180: # S
 			dir_rect = pg.Rect(self.rect.x, self.rect.y + tales,tales,tales)
+		if self.direction == 270: # E
+			dir_rect = pg.Rect(self.rect.x+ tales, self.rect.y,tales,tales)
 
 		if dir_rect.colliderect(obj_rect):
 			return True
 		else:
 			return False
 
-	def set_direction(self,dir_final: int) -> None:
-		# in_dir + y = dir_final
-		# y = dir_final - in_dir
+	def set_direction(self,dir_final: int, change_image = True) -> None:
+
 		if self.direction != dir_final:
-			# print(f"Wanted dir_final = {dir_final}")
 
 			dir_change = dir_final - self.direction
 
-			# print(f"in_dir + dir_change = dir_final: {self.direction} + {dir_change} = {dir_final}")
-
 			self.direction = self.direction + dir_change
 
+			if change_image:
 
-			self.image = pg.transform.rotate(self.image,dir_change)
+				self.image = pg.transform.rotate(self.image,dir_change)
 
-			# print(f"Player dir: {self.direction}")
+			else:
+				img = pg.transform.rotate(self.image,dir_change)
+				return img
+			
 
 	def set_target(self,goingx,goingy):
 
@@ -383,28 +416,45 @@ class Player(GameObject):
 		if not collide_walls and not collide_intobj2 and not collide_intobj3 and not collide_smalint2 and not collide_smalint3 and not canceled:
 			self.target = (new_x, new_y)
 
+			
+
 	def move_to_target(self):
 			final_x, final_y = self.target
+
+			dis_x = self.rect.x - final_x
+			dis_y = self.rect.y - final_y
+
+			if dis_x != 0:
+				self.move_progress = 1 - abs(dis_x/tales)
+			if dis_y != 0:
+				self.move_progress = 1 - abs(dis_y/tales)
+
 			if final_x < self.rect.x:
 				self.rect.x -= self.speed
 				if self.rect.x <= final_x:
 					self.rect.x = final_x
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
 			if final_x > self.rect.x:
 				self.rect.x += self.speed
 				if self.rect.x >= final_x:
 					self.rect.x = final_x
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
 			if final_y < self.rect.y:
 				self.rect.y -= self.speed
 				if self.rect.y <= final_y:
 					self.rect.y = final_y
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
 			if final_y > self.rect.y:
 				self.rect.y += self.speed
 				if self.rect.y >= final_y:
 					self.rect.y = final_y
 					self.target = None # Обнуляем цель после движения
+					self.move_progress = None
+
+			# print(f"Player move progresss: {self.move_progress}")
 
 	def controls(self):
 		#
@@ -416,19 +466,19 @@ class Player(GameObject):
 
 		if self.target == None: # Проверяем что нету цели <3
 			if pg.key.get_pressed()[pg.K_a]:
-				self.set_direction(180)
+				self.set_direction(90)
 				self.set_target(-1,0)
 			elif pg.key.get_pressed()[pg.K_d]:
-				self.set_direction(0)
+				self.set_direction(270)
 				self.set_target(1, 0)
 			elif pg.key.get_pressed()[pg.K_w]:
-				self.set_direction(90)
+				self.set_direction(0)
 				self.set_target(0, -1)
 			elif pg.key.get_pressed()[pg.K_s]:
-				self.set_direction(270)
+				self.set_direction(180)
 				self.set_target(0, 1)
 
-
+			
 
 		if self.target:
 			self.move_to_target()
@@ -443,6 +493,34 @@ class Player(GameObject):
 				self.rect.x = x_tile     #Moving player
 				self.rect.y = y_tile
 
+	def animate(self):
+
+		if self.target != None:
+			
+			part_size = 1/len(self.animation)
+
+			if self.move_progress < part_size:
+
+				self.anim_turn = 0
+
+			elif self.move_progress > part_size:
+
+				self.anim_turn = 1
+
+			
+			self.last_anim = pg.transform.rotate(self.image,0-self.direction)
+
+			self.image = pg.transform.rotate(self.animation[self.anim_turn],self.direction)
+
+		else:
+
+			self.image = pg.transform.rotate(pg.transform.scale(pg.image.load("game pics/rover/TheRoverIdle.png"),(tales,tales)), self.direction).convert_alpha()
+
+
+
+		# add check for self.target | then do delays and shit.
+
+player = Player(tales,tales,tales,tales,tales/8,"game pics/rover/TheRoverIdle.png")
 
 class InteractionObj(GameObject):
 	def __init__(self,name,dialogue, x, y, w, h, speed, image_route,line_lenght,int_mode,question,index = None, custom = False):
@@ -560,9 +638,9 @@ class SmallInt():
 		self.bigw = w
 		self.bigh = h
 		self.image_route = image_route
-		self.image1 = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h))
+		self.image1 = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h)).convert_alpha()
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh))
+		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
 		self.rect = self.image1.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -627,7 +705,7 @@ class SmallInt():
 	def new_imagebig(self,imagebig_route,w = 800,h = 600):
 
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh))
+		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
 
 		self.bigw = w
 		self.bigh = h
@@ -788,7 +866,7 @@ class Inventory():
 
 
 
-					if pg.key.get_pressed()[pg.K_ESCAPE]:
+					if pg.key.get_pressed()[pg.K_ESCAPE] or pg.key.get_pressed()[pg.K_f]:
 						inventory_show = False
 
 
@@ -886,7 +964,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 		else:
 			self.sizes_h = sizes_h
 
-	def animation(self, speed = 1, times_max = 1) -> True:
+	def animation(self, speed = 1, times_max = 1, left_top = False) -> True:
 		global now
 
 		# Initializating variables
@@ -898,27 +976,24 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 
 		delay = int(500 / speed)
 
-		sizes_w = self.sizes_w
-		sizes_h = self.sizes_h
-
 		# print(f"Effect | times done: {times_done} < times max: {times_max}")
-		if times_done < times_max:
+		if times_done < times_max or times_max == -1:
 			# print(f"Effect | Now: {now} - Last: {last} = {now-last} >= Delay: {delay}")
 			if now-last >= delay:
 
 				if turn != len(sprites):
-
-					self.set_image_to_center(turn)
+					
+					self.set_image_to_center(turn, left_top)
 					self.anim_turn += 1
 					self.anim_last = now
 
-					print(f"Effect | Animation sprite changed ")
+					# print(f"Effect | Animation sprite changed ")
 
 				else:
 					self.anim_loops_done +=1
 					self.anim_turn = 0
 
-					print("Effect | Cycle of animation done")
+					# print("Effect | Cycle of animation done")
 
 		else:
 			self.image = None   # Might have some errors because image wasnt suppose to be None
@@ -929,25 +1004,25 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 
 			return self.animation_finished
 
-	def run_animation (self, speed = 1, times_max = 1):
+	def run_animation (self, speed = 1, times_max = 1, left_top = False):
 
 		if not self.animation_finished:
-			self.animation(speed,times_max)
+			self.animation(speed,times_max,left_top)
 
-	def set_image_to_center(self,turn):
-		if self.sizes_w[turn] == tales and self.sizes_h[turn] == tales:
+	def set_image_to_center(self,turn, dont = False):
+		if self.sizes_w[turn] == tales and self.sizes_h[turn] == tales or dont:
 			self.rect.x = self.init_x
 			self.rect.y = self.init_y
-			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
+			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
 			return
 		else:
-			print(f"Effects | intit_x + tales/2 - size_w/2 | {self.init_x} + {tales/2} - {self.sizes_w[turn]/2} | turn = {turn}")
-			print(f"Effects | intit_y + tales/2 - size_w/2 | {self.init_y} + {tales/2} - {self.sizes_h[turn]/2} | turn = {turn}")
+			# print(f"Effects | intit_x + tales/2 - size_w/2 | {self.init_x} + {tales/2} - {self.sizes_w[turn]/2} | turn = {turn}")
+			# print(f"Effects | intit_y + tales/2 - size_w/2 | {self.init_y} + {tales/2} - {self.sizes_h[turn]/2} | turn = {turn}")
 			self.rect.x = self.init_x + tales/2 - self.sizes_w[turn]/2
 			self.rect.y = self.init_y + tales/2 - self.sizes_h[turn]/2
-			print(f"Effects | x: {self.rect.x} y: {self.rect.y}")
+			# print(f"Effects | x: {self.rect.x} y: {self.rect.y}")
 
-			self.image = self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
+			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
 
 class Wall(GameObject):
 	def __init__(self, x, y, w, h, speed, image, angle = 0):
@@ -1106,6 +1181,10 @@ class PipefixMinigame():
 		self.blit_patches() 
 
 	def draw(self):
+		pg.draw.rect(screen,(15, 23, 42),(self.cordShiftX, self.cordShiftY-75, 500, 80),)
+
+		print_text(screen,"Hold LMB to patch up pipe","Comic Sans",36,self.cordShiftX+30, self.cordShiftY-60)
+
 		screen.blit(self.surface,(self.cordShiftX, self.cordShiftY))
 
 
@@ -1171,17 +1250,17 @@ karta1 = [
 ]
 
 chupep = [
-	'0000000000000000100000000000000000000000',
 	'0000000000000000110000000000000000000000',
-	'0000000000000000110000000000000000000000',
+	'0000000000000000111000000000000000000000',
+	'0000000000000000111000000000000000000000',
+	'0000000000000000111000001000000000000000',
+	'0000000000000000110000001000000011000000',
+	'0000000000000000111000000000000000000100',
 	'0000000000000000110000001000000000000000',
-	'0000000000000000100000001000000011000000',
-	'0000000000000000110000000000000000000100',
-	'0000000000000000100000001000000000000000',
-	'0000000000000000110000000000000000000000',
-	'0000000000000000110000001000001100000000',
-	'1100000000000000110000001000000000000000',
-	'0111111111111111100000000000000000000000',
+	'0000000000000000111000000000000000000000',
+	'0000000000000000111000001000001100000000',
+	'1100000000000000111000001000000000000000',
+	'0111111111111111110000000000000000000000',
 	'0000000000000000000000001000000000000000',
 	'0010001000100010010010000000000000011000',
 	'0000000000000000000000000000000000000000',
@@ -1257,7 +1336,7 @@ basement_stasa = [
 basement_yura = [
 	"1"*20,
 	"11111111111678911111",
-	"11111101000000000j11",
+	"1111h10c000000000j11",
 	"11000000000000000011",
 	"10000000000000000011",
 	"10000000000000000011",
@@ -1289,7 +1368,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 2
+startLevel = 0
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1302,21 +1381,22 @@ screenCollectables = []
 
 pipefix = PipefixMinigame()
 
-map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
-map_chupep = pg.transform.scale(pg.image.load("game pics/chupep.png"),screen.get_size())
-map_stas_low = pg.transform.scale(pg.image.load("game pics/karta_stasa_low.png"),(45*25,45*25))
-map_stas_up = pg.transform.scale(pg.image.load("game pics/karta_stasa_up.png"),(45*25,45*25))
-map_yura_low = pg.transform.scale(pg.image.load("game pics/basement_yura_low.png"),(60*20,60*14))
-map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png"),(60*20,60*14))
+map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales)).convert()
+map_chupep_low = pg.transform.scale(pg.image.load("game pics/chupep_down.png"),screen.get_size()).convert()
+map_chupep_up = pg.transform.scale(pg.image.load("game pics/chupep_up.png"),screen.get_size()).convert_alpha()
+map_stas_low = pg.transform.scale(pg.image.load("game pics/karta_stasa_low.png"),(45*25,45*25)).convert()
+map_stas_up = pg.transform.scale(pg.image.load("game pics/karta_stasa_up.png"),(45*25,45*25)).convert_alpha()
+map_yura_low = pg.transform.scale(pg.image.load("game pics/basement_yura_low.png"),(60*20,60*14)).convert()
+map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png"),(60*20,60*14)).convert_alpha()
 
 togo_levels = None
 
 # endregion Objects init
 
-def map(kostil = None, up = None):
+def map(down = None, up = None):
 	global tales, screen, map_app
 
-	if kostil == None and up == None:
+	if down == None and up == None:
 		print ("**| map |**")
 		if choosenLevel == karta:
 			print ("map | CL = karta")
@@ -1340,6 +1420,9 @@ def map(kostil = None, up = None):
 			player.rect.x , player.rect.y =(tales*16,tales*21)
 
 			print ("map | CL = karta1")
+			
+			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
+
 			for i in range(len(karta1)):
 				#print("i =", i)
 				for g in range(len(karta1[i])):
@@ -1415,7 +1498,7 @@ def map(kostil = None, up = None):
 					if karta1[i][g]==",":
 						walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/left_up_angle_zaborchik.png",0))
 					if karta1[i][g]==".":
-						smallInt.append(SmallInt(3,"game pics/grave_on_the_floor.png","game pics/CHIKIBAMBONI(O.M.).png",g*tales,i*tales,True))
+						smallInt.append(SmallInt(3,"game pics/grave_on_the_floor.png","game pics/boris.png",g*tales,i*tales,True))
 					if karta1[i][g]=="[":
 						intObj.append(InteractionObj("Rover",["I cant leave yet"],g*tales,i*tales,tales,tales,0,"game pics/zaborl.png",30,3,False,"exit"))
 					if karta1[i][g]=="]":
@@ -1428,7 +1511,9 @@ def map(kostil = None, up = None):
 			player.rect.x , player.rect.y =(tales,tales*14)
 			player.allowed_exits = [True,False,False,False]
 
-			screen.blit(map_chupep,(0,0,screen.get_width(),screen.get_height()))
+			screen.blit(map_chupep_low,(0,0,screen.get_width(),screen.get_height()))
+
+			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
 			for i in range(len(chupep)):
 				for g in range(len(chupep[i])):
 					if chupep[i][g] == "0":
@@ -1539,12 +1624,12 @@ def map(kostil = None, up = None):
 			screen = pg.display.set_mode((tales*25,tales*25))
 
 			if player.last_level == 5:
-				player.__init__(tales*24,tales*9,tales,tales,tales/8,"game pics/avatar.png")
+				player.__init__(tales*24,tales*9,tales,tales,tales/8,player.image_route)
 				player.set_direction(180)
 
 			else:
-				player.__init__(tales*11,tales*24,tales,tales,tales/8,"game pics/avatar.png")
-				player.set_direction(90)
+				player.__init__(tales*11,tales*24,tales,tales,tales/8,player.image_route)
+				player.set_direction(0)
 
 			player.allowed_exits = [False,False,False,True]
 
@@ -1574,6 +1659,9 @@ def map(kostil = None, up = None):
 						screenCollectables.append(ScreenCollectable(screen_w/2 - 100,screen_h/2 - 100,200,200,"game pics/tape.png","tape"))
 					if basement_stasa[i][g] == "p":
 						intObj.append(InteractionObj("Rover",["aaaaaaaaaaaaaaa"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"pipe",True))
+						
+						animSpriteList = ["anim/water_drop1.png","anim/water_drop2.png","anim/water_drop3.png","anim/water_drop4.png","anim/water_drop5.png"]
+						effects.append(Effect(g*tales,i*tales,tales,tales,1,animSpriteList,index = "pipe_leak",layer=1))
 
 		if choosenLevel == basement_yura:
 
@@ -1620,7 +1708,14 @@ def map(kostil = None, up = None):
 					if basement_yura[i][g] == "j":
 						walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/frog.png","frog",1))
 						effects.append(Effect(g*tales,i*tales,tales,tales,0,["boom1.png","boom2.png","boom3.png","boom4.png"],sizes_w=[30,40,60,80],sizes_h=[30,40,60,80],index = "exp",layer = 1))
-
+					if basement_yura[i][g] == "h":
+						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/hint.png",g*tales,i*tales,index = "hint"))
+					if basement_yura[i][g] == "c":
+						if inventory.get_amount("key") > 0:
+							intObj.append(InteractionObj("Rover",["Key doesnt work here"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False))
+						else:
+							intObj.append(InteractionObj("Rover",["Chest is locked"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",40,3,False))
+						
 		if choosenLevel == final_appartment:
 
 			tales = 80
@@ -1628,7 +1723,7 @@ def map(kostil = None, up = None):
 			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
 
 			player.target = None
-			player.__init__(tales,tales*2,tales,tales,tales/8,"game pics/avatar.png")
+			player.__init__(tales,tales*2,tales,tales,tales/8,player.image_route)
 
 
 			print("map | CL = appartment")
@@ -1669,7 +1764,7 @@ def map(kostil = None, up = None):
 					
 
 
-	if kostil != None:
+	if down != None:
 		# Fixes the bug with player model on appartment map
 
 		if choosenLevel == appartment or choosenLevel == appartment_1 or choosenLevel == final_appartment:
@@ -1677,15 +1772,15 @@ def map(kostil = None, up = None):
 			# print("map | kostil found")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
 
-		if choosenLevel == chupep:
+		elif choosenLevel == chupep:
 
-			screen.blit(map_chupep,(0,0,screen.get_width(),screen.get_height()))
+			screen.blit(map_chupep_low,(0,0,screen.get_width(),screen.get_height()))
 
-		if choosenLevel == basement_stasa:
+		elif choosenLevel == basement_stasa:
 
 			screen.blit(map_stas_low,(0,0,screen.get_width(),screen.get_height()))
 
-		if choosenLevel == basement_yura:
+		elif choosenLevel == basement_yura:
 
 			screen.blit(map_yura_low,(0,0,screen.get_width(),screen.get_height()))
 
@@ -1708,12 +1803,16 @@ def map(kostil = None, up = None):
 	# print(f"level1progress = {level1progress}")
 
 	if up != None:
-		if choosenLevel == basement_yura:
+		
+		if choosenLevel == chupep:
+
+			screen.blit(map_chupep_up,(0,0,screen.get_width(),screen.get_height()))
+
+		elif choosenLevel == basement_yura:
 
 			screen.blit(map_yura_up,(0,0,screen.get_width(),screen.get_height()))
 
-
-		if choosenLevel == basement_stasa:
+		elif choosenLevel == basement_stasa:
 
 			screen.blit(map_stas_up,(0,0,45*25,45*25))
 
@@ -1736,10 +1835,17 @@ def map(kostil = None, up = None):
 				# KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
 
 
-player = Player(tales,tales,tales,tales,tales/8,"game pics/avatar.png")
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
-def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #travel on other level
+def clear_map():
+	floor.clear()
+	walls.clear()
+	intObj.clear()
+	item.clear()
+	smallInt.clear()
+	effects.clear()
+
+def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #travel on other level
 	global last, choosenLevel, startLevel
 
 
@@ -1769,11 +1875,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #tra
 
 				print(f"travel | new startLevel = {startLevel}")
 
-				floor.clear()
-				walls.clear()
-				intObj.clear()
-				item.clear()
-				smallInt.clear()
+				clear_map()
 
 				print("travel | map lists cleared")
 
@@ -1814,11 +1916,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #tra
 
 					# print("travel | CL =",choosenLevel)
 
-					floor.clear()
-					walls.clear()
-					intObj.clear()
-					item.clear()
-					smallInt.clear()
+					clear_map()
 
 					print("travel | map lists cleared")
 
@@ -1833,7 +1931,10 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #tra
 
 					map()
 
-				# print("travel | map began")
+				else:
+
+					return False
+					
 			else:
 				print("FORCE TRAVEL:")
 				print("travel | startlevel =", startLevel)
@@ -1847,11 +1948,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #tra
 
 				# print("travel | CL =",choosenLevel)
 
-				floor.clear()
-				walls.clear()
-				intObj.clear()
-				item.clear()
-				smallInt.clear()
+				clear_map()
 
 				print("travel | map lists cleared")
 
@@ -1875,12 +1972,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->None: #tra
 				player.rect.x -= tales
 			if player.rect.x < 0:
 				player.rect.x += tales
-
-
-
-
-
-
+				
 				pg.display.flip()
 				return True
 		else:
@@ -2373,6 +2465,10 @@ def map_blit(floor_only = None):
 				if inventory.get_amount("shovel") != 0:
 					inventory.decrease("shovel")
 		for ef in effects:
+			
+			if ef.index == "rain":
+
+					ef.run_animation(1,-1,True)
 
 			if choosenLevel == basement_yura:
 
@@ -2383,6 +2479,15 @@ def map_blit(floor_only = None):
 
 				if puzzle_won:
 					ef.run_animation(speed = 4)
+
+			if choosenLevel == basement_stasa:
+				
+				if not pipefix.completed:
+					ef.run_animation(1.2,-1)
+				
+				else:
+					
+					effects.remove(ef)
 
 		for i in floor:
 			if startLevel < 3:
@@ -2786,6 +2891,8 @@ def map_blit(floor_only = None):
 
 						pg.display.flip()						
 
+			smol.interaction()
+			
 		for thing in item:
 			thing.reset()
 			if thing.int_mode == 1:
@@ -2841,8 +2948,9 @@ while running:
 
 		map_blit()
 
+		player.animate()
 		player.reset()
-
+		
 		map(up = True)
 
 		player.controls()
@@ -2896,11 +3004,13 @@ while running:
 
 		exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
 
-
 		if player.rect.colliderect(exit_stas.rect):
-			travel("Rover", ["Wanna leave?"],jump_over=1)
+			if travel("Rover", ["Wanna leave?"],jump_over=1) == False:
+				player.rect.y -= tales
 
+	if choosenLevel == final_appartment and GAME_STATE == "Main":
 
+		hint_menu(["I wanna take a bath."],tales*8,tales,tales*2,0,40)
 
 
 #Put the game before this line
