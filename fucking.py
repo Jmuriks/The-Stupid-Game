@@ -22,7 +22,7 @@ class GameObject():
 	def __init__(self,x,y,w,h,speed,image_route,index = None,layer = 0):
 		if image_route != None:
 
-			self.image = pg.transform.scale(pg.image.load(image_route),(w,h))
+			self.image = pg.transform.scale(pg.image.load(image_route),(w,h)).convert_alpha()
 			self.rect= self.image.get_rect()
 			self.rect.x=x
 			self.rect.y=y
@@ -309,7 +309,7 @@ class Player(GameObject):
 		super().__init__(x, y, w, h, speed, image)
 
 		self.direction = 0
-		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction)
+		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction).convert_alpha()
 		self.target = None
 		self.move_progress = None
 		self.allowed_exits = [True,True,True,True] # Top , Bottom , Left , Right.
@@ -325,7 +325,7 @@ class Player(GameObject):
 
 			for anim in self.animation_route:
 				
-				img = pg.transform.scale(pg.image.load(anim),(tales,tales))				
+				img = pg.transform.scale(pg.image.load(anim),(tales,tales)).convert_alpha()
 
 				self.animation.append(img)
 
@@ -440,7 +440,7 @@ class Player(GameObject):
 					self.target = None # Обнуляем цель после движения
 					self.move_progress = None
 
-			print(f"Player move progresss: {self.move_progress}")
+			# print(f"Player move progresss: {self.move_progress}")
 
 	def controls(self):
 		#
@@ -485,12 +485,7 @@ class Player(GameObject):
 			
 			part_size = 1/len(self.animation)
 
-			if self.move_progress == None:
-
-				self.image = pg.transform.rotate(pg.transform.scale(pg.image.load("game pics/rover/TheRoverIdle.png"),(tales,tales)), self.direction)
-				return
-
-			elif self.move_progress < part_size:
+			if self.move_progress < part_size:
 
 				self.anim_turn = 0
 
@@ -502,6 +497,11 @@ class Player(GameObject):
 			self.last_anim = pg.transform.rotate(self.image,0-self.direction)
 
 			self.image = pg.transform.rotate(self.animation[self.anim_turn],self.direction)
+
+		else:
+
+			self.image = pg.transform.rotate(pg.transform.scale(pg.image.load("game pics/rover/TheRoverIdle.png"),(tales,tales)), self.direction).convert_alpha()
+
 
 
 		# add check for self.target | then do delays and shit.
@@ -624,9 +624,9 @@ class SmallInt():
 		self.bigw = w
 		self.bigh = h
 		self.image_route = image_route
-		self.image1 = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h))
+		self.image1 = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h)).convert_alpha()
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh))
+		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
 		self.rect = self.image1.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -691,7 +691,7 @@ class SmallInt():
 	def new_imagebig(self,imagebig_route,w = 800,h = 600):
 
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh))
+		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
 
 		self.bigw = w
 		self.bigh = h
@@ -950,7 +950,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 		else:
 			self.sizes_h = sizes_h
 
-	def animation(self, speed = 1, times_max = 1, centerize = True) -> True:
+	def animation(self, speed = 1, times_max = 1, left_top = False) -> True:
 		global now
 
 		# Initializating variables
@@ -969,7 +969,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 
 				if turn != len(sprites):
 					
-					self.set_image_to_center(turn, centerize)
+					self.set_image_to_center(turn, left_top)
 					self.anim_turn += 1
 					self.anim_last = now
 
@@ -990,16 +990,16 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 
 			return self.animation_finished
 
-	def run_animation (self, speed = 1, times_max = 1):
+	def run_animation (self, speed = 1, times_max = 1, left_top = False):
 
 		if not self.animation_finished:
-			self.animation(speed,times_max)
+			self.animation(speed,times_max,left_top)
 
 	def set_image_to_center(self,turn, dont = False):
 		if self.sizes_w[turn] == tales and self.sizes_h[turn] == tales or dont:
 			self.rect.x = self.init_x
 			self.rect.y = self.init_y
-			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
+			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
 			return
 		else:
 			# print(f"Effects | intit_x + tales/2 - size_w/2 | {self.init_x} + {tales/2} - {self.sizes_w[turn]/2} | turn = {turn}")
@@ -1008,7 +1008,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 			self.rect.y = self.init_y + tales/2 - self.sizes_h[turn]/2
 			# print(f"Effects | x: {self.rect.x} y: {self.rect.y}")
 
-			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn]))
+			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
 
 class Wall(GameObject):
 	def __init__(self, x, y, w, h, speed, image, angle = 0):
@@ -1297,7 +1297,7 @@ basement_stasa = [
 	'1111111111111111111111111',#3
 	'111000000p0010100c0011111',#4
 	'1110000000001000000011111',#5
-	'111000000000000000000b111',#6
+	'111000000000100000000b111',#6
 	'1110000000001000000000111',#7
 	'1110000000001000000000111',#8
 	'1110000000001100000000000',#9
@@ -1354,7 +1354,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 0
+startLevel = 1
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1367,21 +1367,22 @@ screenCollectables = []
 
 pipefix = PipefixMinigame()
 
-map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
-map_chupep = pg.transform.scale(pg.image.load("game pics/chupep.png"),screen.get_size())
-map_stas_low = pg.transform.scale(pg.image.load("game pics/karta_stasa_low.png"),(45*25,45*25))
-map_stas_up = pg.transform.scale(pg.image.load("game pics/karta_stasa_up.png"),(45*25,45*25))
-map_yura_low = pg.transform.scale(pg.image.load("game pics/basement_yura_low.png"),(60*20,60*14))
-map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png"),(60*20,60*14))
+map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales)).convert()
+map_chupep_low = pg.transform.scale(pg.image.load("game pics/chupep_down.png"),screen.get_size()).convert()
+map_chupep_up = pg.transform.scale(pg.image.load("game pics/chupep_up.png"),screen.get_size()).convert_alpha()
+map_stas_low = pg.transform.scale(pg.image.load("game pics/karta_stasa_low.png"),(45*25,45*25)).convert()
+map_stas_up = pg.transform.scale(pg.image.load("game pics/karta_stasa_up.png"),(45*25,45*25)).convert_alpha()
+map_yura_low = pg.transform.scale(pg.image.load("game pics/basement_yura_low.png"),(60*20,60*14)).convert()
+map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png"),(60*20,60*14)).convert_alpha()
 
 togo_levels = None
 
 # endregion Objects init
 
-def map(kostil = None, up = None):
+def map(down = None, up = None):
 	global tales, screen, map_app
 
-	if kostil == None and up == None:
+	if down == None and up == None:
 		print ("**| map |**")
 		if choosenLevel == karta:
 			print ("map | CL = karta")
@@ -1496,7 +1497,7 @@ def map(kostil = None, up = None):
 			player.rect.x , player.rect.y =(tales,tales*14)
 			player.allowed_exits = [True,False,False,False]
 
-			screen.blit(map_chupep,(0,0,screen.get_width(),screen.get_height()))
+			screen.blit(map_chupep_low,(0,0,screen.get_width(),screen.get_height()))
 
 			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
 			for i in range(len(chupep)):
@@ -1613,7 +1614,7 @@ def map(kostil = None, up = None):
 				player.set_direction(180)
 
 			else:
-				player.__init__(tales*11,tales*24,tales,tales,tales/2,player.image_route)
+				player.__init__(tales*11,tales*24,tales,tales,tales/8,player.image_route)
 				player.set_direction(0)
 
 			player.allowed_exits = [False,False,False,True]
@@ -1749,7 +1750,7 @@ def map(kostil = None, up = None):
 					
 
 
-	if kostil != None:
+	if down != None:
 		# Fixes the bug with player model on appartment map
 
 		if choosenLevel == appartment or choosenLevel == appartment_1 or choosenLevel == final_appartment:
@@ -1757,15 +1758,15 @@ def map(kostil = None, up = None):
 			# print("map | kostil found")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
 
-		if choosenLevel == chupep:
+		elif choosenLevel == chupep:
 
-			screen.blit(map_chupep,(0,0,screen.get_width(),screen.get_height()))
+			screen.blit(map_chupep_low,(0,0,screen.get_width(),screen.get_height()))
 
-		if choosenLevel == basement_stasa:
+		elif choosenLevel == basement_stasa:
 
 			screen.blit(map_stas_low,(0,0,screen.get_width(),screen.get_height()))
 
-		if choosenLevel == basement_yura:
+		elif choosenLevel == basement_yura:
 
 			screen.blit(map_yura_low,(0,0,screen.get_width(),screen.get_height()))
 
@@ -1788,12 +1789,16 @@ def map(kostil = None, up = None):
 	# print(f"level1progress = {level1progress}")
 
 	if up != None:
-		if choosenLevel == basement_yura:
+		
+		if choosenLevel == chupep:
+
+			screen.blit(map_chupep_up,(0,0,screen.get_width(),screen.get_height()))
+
+		elif choosenLevel == basement_yura:
 
 			screen.blit(map_yura_up,(0,0,screen.get_width(),screen.get_height()))
 
-
-		if choosenLevel == basement_stasa:
+		elif choosenLevel == basement_stasa:
 
 			screen.blit(map_stas_up,(0,0,45*25,45*25))
 
@@ -1897,11 +1902,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 
 					# print("travel | CL =",choosenLevel)
 
-					floor.clear()
-					walls.clear()
-					intObj.clear()
-					item.clear()
-					smallInt.clear()
+					clear_map()
 
 					print("travel | map lists cleared")
 
@@ -2451,17 +2452,9 @@ def map_blit(floor_only = None):
 					inventory.decrease("shovel")
 		for ef in effects:
 			
-			if choosenLevel == karta1:
+			if ef.index == "rain":
 
-				if ef.index == "rain":
-
-					ef.run_animation(1,-1)
-
-			if choosenLevel == chupep:
-
-				if ef.index == "rain":
-
-					ef.run_animation(1,-1)
+					ef.run_animation(1,-1,True)
 
 			if choosenLevel == basement_yura:
 

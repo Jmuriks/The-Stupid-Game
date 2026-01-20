@@ -2,6 +2,7 @@ Bugs:
 
 *FIXED* On the field you can go back and advance to the next level. 
 *FIXED* On graveyard if you interacted with open grave and after took a shovel grave becomes buried
+In basement_stasa sometimes you pick up multiple tapes instead of one. idk why, and I dont wanna know really.
 
 little details to do:
 
@@ -10,7 +11,7 @@ little details to do:
 
 Plans:
 
-Need to rewrite some things, so we can travel throgh two parts of our basement infinity amount of times and also be able to save all data on those levels.
+Need to rewrite some things, so we can travel throgh two parts of our basement infinity amount of times and also be able to save all data on those levels. *KINDA DONE*
 
 For basement yura: When levers puzzle is solved the frog spits the code for chest after being electricuted or explodes/ !!! *DONE*
 
@@ -88,3 +89,4 @@ Jan 14(Home): Drawed Player model and animation.
 Jan 16: started work on player animation.
 Jan 18: Still started </3  T-T
 Jan 19: Finished player animation, Added rain on first two maps. Tomorrow Doing sounds.
+Jan 19(Home): Fixed some fps bugs, fixed field map, ready to merge.
