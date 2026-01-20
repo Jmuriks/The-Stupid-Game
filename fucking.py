@@ -147,13 +147,21 @@ def dialog_menu(dialogue, line_lenght,name,question):
 
 	w =screen.get_width()
 	h =screen.get_height()
+
 	page = 0
 	page_text = dialogue[page]
+
 	fontName = pg.font.SysFont("Comic Sans", 55)
 	fontTalk = pg.font.SysFont("Comic Sans", 55)
+	fontF = pg.font.SysFont("Comic Sans", 55)
+
 	#print(f"[DEBUG] name = {name} | type = {type(name)}")
+
+	f = fontF.render("F >>>",True,(100,100,255))
 	name_out = fontName.render(name, True ,"white")
 	last = 0
+
+	
 
 	# Relative sizes and positions
 	dialog_x = w * 0.0625
@@ -167,6 +175,9 @@ def dialog_menu(dialogue, line_lenght,name,question):
 	name_box_y = h * 0.575
 	name_box_width = w * 0.25
 	name_box_height = h * 0.075
+
+	f_x = dialog_x + dialog_width - 200
+	f_y = dialog_y + dialog_height - 100
 
 
 	interaction = True
@@ -188,6 +199,9 @@ def dialog_menu(dialogue, line_lenght,name,question):
 		pg.draw.rect(dialog_surface, (15, 23, 42), [dialog_x, dialog_y, dialog_width, dialog_height])
 		# Name Box
 		pg.draw.rect(dialog_surface, ("gray"), [name_box_x, name_box_y, name_box_width, name_box_height])
+		# F to continue
+		dialog_surface.blit(f,(f_x,f_y))
+
 
 		#Divide dialogue in several segments
 		page_text = dialogue[page]
@@ -852,7 +866,7 @@ class Inventory():
 
 
 
-					if pg.key.get_pressed()[pg.K_ESCAPE]:
+					if pg.key.get_pressed()[pg.K_ESCAPE] or pg.key.get_pressed()[pg.K_f]:
 						inventory_show = False
 
 
@@ -1354,7 +1368,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 1
+startLevel = 0
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
