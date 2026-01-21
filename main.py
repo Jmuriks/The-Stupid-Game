@@ -10,7 +10,7 @@ tales = 40
 screen=pg.display.set_mode((tales*40,tales*25))
 clock = pg.time.Clock()
 
-pg.display.set_caption("Suchina")
+pg.display.set_caption("Hello")
 
 Chickibamboni=pg.transform.scale(pg.image.load("game pics/CHIKIBAMBONI(O.M.).png"),(80*12,80*11))
 
@@ -2222,7 +2222,7 @@ def screencollectables_cycle(name = None,activate = None):
 
 				if collectable.name == name:
 					collectable.active = activate
-					print(f"Collectable {collectable.name} activated")
+					# print(f"Collectable {collectable.name} activated")
 
 			if collectable.active:
 				collectable.reset()
@@ -3038,7 +3038,7 @@ while running:
 
 		inventory.inventory_cycle()
 
-		fps_show()
+		# fps_show()
 
 	elif GAME_STATE == "Minigame":
 		

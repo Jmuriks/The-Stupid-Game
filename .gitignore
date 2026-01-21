@@ -1,6 +1,6 @@
 *
 !.gitignore
-!fucking.py
+!main.py
 !changelog.txt
 !game pics/
 !game pics/**
