@@ -91,3 +91,4 @@ Jan 18: Still started </3  T-T
 Jan 19: Finished player animation, Added rain on first two maps. Tomorrow Doing sounds.
 Jan 19(Home): Fixed some fps bugs, fixed field map, ready to merge. | hour later: Added some user friendly UI to dialog, updated controls in main menu
 Jan 20: Frog now explodes with sound, need to add other sounds untill tomorrow.
+Jan 20(Home): added some sounds game somewhat ready.
