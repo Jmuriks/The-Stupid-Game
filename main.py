@@ -1405,7 +1405,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 0
+startLevel = 2
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -2341,29 +2341,30 @@ def map_blit(floor_only = None):
 
 			if choosenLevel == appartment:
 
-				if obj.index == "tea": # checking for int obj with index tea
+				# if obj.index == "tea": # checking for int obj with index tea
 
-					if obj.times_activated > 10:
-						walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/nothing.png", 0))
-						intObj.remove(obj)
+				# 	if obj.times_activated > 10:
+				# 		walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/nothing.png", 0))
+				# 		intObj.remove(obj)
+				# 		break
 
-					if obj.answer == True: # looking if answer is yes
-						inventory.increase("tea") # Giving tea
-						print("tea =", inventory.get_amount("tea"))
+				# 	if obj.answer == True: # looking if answer is yes
+				# 		inventory.increase("tea") # Giving tea
+				# 		print("tea =", inventory.get_amount("tea"))
 
 
-					# Changing text after several tea
+				# 	# Changing text after several tea
 
-						if 5 >obj.times_activated >= 1:
-							obj.change(obj.name,["More tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
+				# 		if 5 >obj.times_activated >= 1:
+				# 			obj.change(obj.name,["More tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
 
-						elif 10 >obj.times_activated >= 5:
-							obj.change(obj.name,["More tea???"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
+				# 		elif 10 >obj.times_activated >= 5:
+				# 			obj.change(obj.name,["More tea???"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
 
-						elif obj.times_activated == 10:
-							obj.change(obj.name,["Last tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
+				# 		elif obj.times_activated == 10:
+				# 			obj.change(obj.name,["Last tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
 
-						obj.answer = False
+				# 		obj.answer = False
 
 				if obj.index == "sleep": # checking my sleeping bag
 
