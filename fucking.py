@@ -2,7 +2,10 @@ import pygame as pg
 import random
 import math
 from time import sleep
+pg.mixer.pre_init(44100, -16, 2, 512)
 pg.init()
+
+
 tales = 40
 screen=pg.display.set_mode((tales*40,tales*25))
 clock = pg.time.Clock()
@@ -10,6 +13,8 @@ clock = pg.time.Clock()
 pg.display.set_caption("Suchina")
 
 Chickibamboni=pg.transform.scale(pg.image.load("game pics/CHIKIBAMBONI(O.M.).png"),(80*12,80*11))
+
+volume_sfx = 0.2
 
 
 GAME_STATE = "Main"
@@ -330,6 +335,14 @@ class Player(GameObject):
 		self.current_level = None
 		self.last_level = None
 
+		sound1 = pg.mixer.Sound("sounds/invalid.wav")
+		sound1.set_volume(0.2)
+
+		sound2 = pg.mixer.Sound("sounds/invalid1.wav")
+		sound2.set_volume(0.2)
+
+		self.walk_sound = [sound1,sound2]
+		
 		self.animation_route = animation_route
 		self.last_anim = None
 		self.anim_turn = 0
@@ -415,8 +428,14 @@ class Player(GameObject):
 
 		if not collide_walls and not collide_intobj2 and not collide_intobj3 and not collide_smalint2 and not collide_smalint3 and not canceled:
 			self.target = (new_x, new_y)
+			return True
+		
+		else:
+			return False
 
-			
+	def play_walk_sound(self):
+
+		self.walk_sound[random.randint(0,1)].play()
 
 	def move_to_target(self):
 			final_x, final_y = self.target
@@ -467,16 +486,20 @@ class Player(GameObject):
 		if self.target == None: # Проверяем что нету цели <3
 			if pg.key.get_pressed()[pg.K_a]:
 				self.set_direction(90)
-				self.set_target(-1,0)
+				if self.set_target(-1,0):
+					self.play_walk_sound()
 			elif pg.key.get_pressed()[pg.K_d]:
 				self.set_direction(270)
-				self.set_target(1, 0)
+				if self.set_target(1, 0):
+					self.play_walk_sound()
 			elif pg.key.get_pressed()[pg.K_w]:
 				self.set_direction(0)
-				self.set_target(0, -1)
+				if self.set_target(0, -1):
+					self.play_walk_sound()
 			elif pg.key.get_pressed()[pg.K_s]:
 				self.set_direction(180)
-				self.set_target(0, 1)
+				if self.set_target(0, 1):
+					self.play_walk_sound()
 
 			
 
@@ -776,12 +799,16 @@ class Inventory():
 		}
 
 		self.inventory_panel = [None] * 6
+		self.sound = pg.mixer.Sound("sounds/pick_up.wav")
+		self.sound.set_volume(volume_sfx)
 
 	def increase(self, name):
 		try:
 			self.collectables[name].amount += 1
 
 			self.update_inventory()
+
+			self.sound.play()
 
 			print(f"Item increased: {self.inventory_panel}")
 		except KeyError:
@@ -933,7 +960,6 @@ class Exit_zone():
 
 	def leave(self,text):
 		return travel("Rover",text)
-
 
 class Effect(GameObject): # a lot of thinking here | ebanina
 	def __init__(self,x,y,w,h,speed, sprites: list, sizes_w = None,sizes_h = None,index = None,layer = 0):
@@ -1187,6 +1213,17 @@ class PipefixMinigame():
 
 		screen.blit(self.surface,(self.cordShiftX, self.cordShiftY))
 
+class Sound():
+	def __init__(self,sound_route,index):
+		self.sound = pg.mixer.Sound(sound_route)
+		self.index = index
+
+		self.times_played = 0
+
+	def play(self):
+		
+		self.sound.play()
+		self.times_played += 1
 
 # endregion Damn CLASSES
 
@@ -1379,6 +1416,10 @@ item=[]
 smallInt = []
 screenCollectables = []
 
+sounds = {}
+music = {}
+playing_music = None
+
 pipefix = PipefixMinigame()
 
 map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales)).convert()
@@ -1394,7 +1435,7 @@ togo_levels = None
 # endregion Objects init
 
 def map(down = None, up = None):
-	global tales, screen, map_app
+	global tales, screen, map_app, playing_music
 
 	if down == None and up == None:
 		print ("**| map |**")
@@ -1420,7 +1461,12 @@ def map(down = None, up = None):
 			player.rect.x , player.rect.y =(tales*16,tales*21)
 
 			print ("map | CL = karta1")
-			
+
+			music["rain"] = pg.mixer.music.load("sounds/rain.wav")
+			pg.mixer.music.play(-1)
+
+			sounds["shovel"] = pg.mixer.Sound("sounds/shovel.wav")
+
 			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
 
 			for i in range(len(karta1)):
@@ -1533,8 +1579,14 @@ def map(down = None, up = None):
 
 			player.target = None
 			# player.rect.x , player.rect.y =(tales, tales*2)
-			player.__init__(tales,tales*2,tales,tales,tales/8,"game pics/avatar.png")
+			player.__init__(tales,tales*2,tales,tales,tales/10,"game pics/avatar.png")
 
+			pg.mixer.music.unload()
+			pg.mixer.music.load("sounds/cipher.mp3")
+			pg.mixer.music.set_volume(0.1)
+			pg.mixer.music.play(-1)
+
+			sounds["fridge"] = pg.mixer.Sound("sounds/fridge.mp3")
 
 			print("map | CL = appartment")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
@@ -1549,7 +1601,7 @@ def map(down = None, up = None):
 					if appartment[i][g] == "3":
 						intObj.append(InteractionObj("Rover",["Here is my keys","Dont need them now"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"keys"))
 					if appartment[i][g] == "4":
-						intObj.append(InteractionObj("Fridge",["*Fridge sounds*"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+						intObj.append(InteractionObj("Fridge",["*Fridge sounds*"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False,"fridge"))
 					if appartment[i][g] == "5":
 						intObj.append(InteractionObj("Rover",["Notebook on kitchen table -_-"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
 					if appartment[i][g] == "6":
@@ -1563,7 +1615,7 @@ def map(down = None, up = None):
 					if appartment[i][g] == "a":
 						intObj.append(InteractionObj("Rover",["Toilet."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
 					if appartment[i][g] == "b":
-						intObj.append(InteractionObj("Rover",["the sink and mirror (that u cant see)"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+						intObj.append(InteractionObj("Rover",["the sink and mirror"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
 					if appartment[i][g] == "c":
 						intObj.append(InteractionObj("Rover",["Bath."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
 					if appartment[i][g] == "t":
@@ -1624,12 +1676,17 @@ def map(down = None, up = None):
 			screen = pg.display.set_mode((tales*25,tales*25))
 
 			if player.last_level == 5:
-				player.__init__(tales*24,tales*9,tales,tales,tales/8,player.image_route)
+				player.__init__(tales*24,tales*9,tales,tales,tales/10,player.image_route)
 				player.set_direction(180)
 
 			else:
-				player.__init__(tales*11,tales*24,tales,tales,tales/8,player.image_route)
+				player.__init__(tales*11,tales*24,tales,tales,tales/10,player.image_route)
 				player.set_direction(0)
+
+				pg.mixer.music.unload()
+				pg.mixer.music.load("sounds/basement.mp3")
+				pg.mixer.music.set_volume(0.5)
+				pg.mixer.music.play(-1)
 
 			player.allowed_exits = [False,False,False,True]
 
@@ -1639,6 +1696,7 @@ def map(down = None, up = None):
 
 
 			screen.blit(map_stas_low,(0,0,tales*25,tales*25))
+
 
 			for i in range(len(basement_stasa)):
 				for g in range(len(basement_stasa[i])):
@@ -1670,7 +1728,7 @@ def map(down = None, up = None):
 			screen = pg.display.set_mode((tales*20, tales*14))
 
 
-			player.__init__(0,tales*7,tales,tales,tales/8,"game pics/avatar.png")
+			player.__init__(0,tales*7,tales,tales,tales/10,"game pics/avatar.png")
 			player.set_direction(0)
 			player.allowed_exits = [False,False,True,False]
 
@@ -1681,6 +1739,10 @@ def map(down = None, up = None):
 			togo_levels = basement_stasa
 
 			print (f"togo_levels during map = {togo_levels}")
+
+			sounds["boom"] = pg.mixer.Sound("sounds/explosion.ogg")
+			sounds["boom"].set_volume(0.5)
+			sounds["lever"] = pg.mixer.Sound("sounds/light_switch.mp3")
 
 			for i in range(len(basement_yura)):
 				for g in range(len(basement_yura[i])):
@@ -1723,11 +1785,17 @@ def map(down = None, up = None):
 			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
 
 			player.target = None
-			player.__init__(tales,tales*2,tales,tales,tales/8,player.image_route)
+			player.__init__(tales,tales*2,tales,tales,tales/10,player.image_route)
 
 
 			print("map | CL = appartment")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
+
+			pg.mixer.music.unload()
+			pg.mixer.music.load("sounds/cipher.mp3")
+			pg.mixer.music.set_volume(0.1)
+			pg.mixer.music.play(-1)
+
 			for i in range(len(final_appartment)):
 				for g in range(len(final_appartment[i])):
 					if final_appartment[i][g] == "0":
@@ -1762,7 +1830,6 @@ def map(down = None, up = None):
 						else:
 							walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/nothing.png",0))
 					
-
 
 	if down != None:
 		# Fixes the bug with player model on appartment map
@@ -1844,6 +1911,7 @@ def clear_map():
 	item.clear()
 	smallInt.clear()
 	effects.clear()
+	sounds.clear()
 
 def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #travel on other level
 	global last, choosenLevel, startLevel
@@ -2170,6 +2238,8 @@ lastlevel = None   # We already have player.last_level but this thing here to in
 
 event_queue = None
 
+
+
 def map_blit(floor_only = None):
 	global level1progress , happened , lastlevel, GAME_STATE, minigame
 
@@ -2243,6 +2313,7 @@ def map_blit(floor_only = None):
 
 						if obj.image_route == "game pics/mo.png":         # MAYBE CHANGE IT TO A SHORTER FUNCTION LATER | We are changing gravve texture when answer after interaction is positive
 
+							sounds["shovel"].play()
 							walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/mm.png", 0))
 							intObj.remove(obj)
 
@@ -2250,6 +2321,8 @@ def map_blit(floor_only = None):
 
 						if obj.image_route == "game pics/mo_down.png":     # MAYBE CHANGE IT TO A SHORTER FUNCTION LATER | We are changing gravve texture when answer after interaction is positive
 
+							sounds["shovel"].play()
+						
 							obj.image_route = "game pics/mm2.png"
 							walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, obj.image_route, 0))
 							intObj.remove(obj)
@@ -2333,6 +2406,8 @@ def map_blit(floor_only = None):
 
 							lever1_action = True
 
+							sounds["lever"].play()
+
 							if obj.image_route == "game pics/lever_down.png":
 
 								obj.image_route = "game pics/lever_up.png"
@@ -2352,6 +2427,8 @@ def map_blit(floor_only = None):
 						if obj.answer:
 
 							lever2_action = True
+
+							sounds["lever"].play()
 
 							if obj.image_route == "game pics/lever_down.png":
 
@@ -2374,6 +2451,8 @@ def map_blit(floor_only = None):
 
 							lever3_action = True
 
+							sounds["lever"].play()
+
 							if obj.image_route == "game pics/lever_down.png":
 
 								obj.image_route = "game pics/lever_up.png"
@@ -2394,6 +2473,8 @@ def map_blit(floor_only = None):
 					if obj.answer:
 
 						lever4_action = True
+
+						sounds["lever"].play()
 
 						if obj.image_route == "game pics/lever_down.png":
 
@@ -2511,8 +2592,6 @@ def map_blit(floor_only = None):
 				w.reset()
 
 			if choosenLevel == basement_yura:
-
-
 
 				if w.index == "lamp1":
 
@@ -2693,6 +2772,8 @@ def map_blit(floor_only = None):
 					if w.index == "frog":
 
 						w.image_route, w.index = "game pics/nothing.png", None   # If not change index cycle eats all FPS
+
+						sounds["boom"].play()
 
 		for smol in smallInt:
 			if startLevel < 3:
