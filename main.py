@@ -1406,7 +1406,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 2
+startLevel = 0
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1433,7 +1433,7 @@ map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png")
 
 togo_levels = None
 
-# endregion Objects init
+# endregion Objects init aaaaaaaaaaaaaaa
 
 def map(down = None, up = None):
 	global tales, screen, map_app, playing_music
