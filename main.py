@@ -15,6 +15,7 @@ pg.display.set_caption("Hello")
 Chickibamboni=pg.transform.scale(pg.image.load("game pics/CHIKIBAMBONI(O.M.).png"),(80*12,80*11))
 
 volume_sfx = 0.2
+volume_music = 0.1
 
 
 GAME_STATE = "Main"
@@ -1697,6 +1698,7 @@ def map(down = None, up = None):
 
 			screen.blit(map_stas_low,(0,0,tales*25,tales*25))
 
+			sounds["door"] = pg.mixer.Sound("sounds/door.mp3")
 
 			for i in range(len(basement_stasa)):
 				for g in range(len(basement_stasa[i])):
@@ -2341,31 +2343,6 @@ def map_blit(floor_only = None):
 
 			if choosenLevel == appartment:
 
-				# if obj.index == "tea": # checking for int obj with index tea
-
-				# 	if obj.times_activated > 10:
-				# 		walls.append(Wall(obj.rect.x, obj.rect.y, obj.w, obj.h, obj.speed, "game pics/nothing.png", 0))
-				# 		intObj.remove(obj)
-				# 		break
-
-				# 	if obj.answer == True: # looking if answer is yes
-				# 		inventory.increase("tea") # Giving tea
-				# 		print("tea =", inventory.get_amount("tea"))
-
-
-				# 	# Changing text after several tea
-
-				# 		if 5 >obj.times_activated >= 1:
-				# 			obj.change(obj.name,["More tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-
-				# 		elif 10 >obj.times_activated >= 5:
-				# 			obj.change(obj.name,["More tea???"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-
-				# 		elif obj.times_activated == 10:
-				# 			obj.change(obj.name,["Last tea?"],obj.image_route,obj.line_lenght,obj.int_mode,obj.question, index = obj.index)
-
-				# 		obj.answer = False
-
 				if obj.index == "sleep": # checking my sleeping bag
 
 					if obj.answer == True: # checking that player went to sleep
@@ -2501,6 +2478,8 @@ def map_blit(floor_only = None):
 						if obj.image_route == "game pics/door_r.png":
 							floor.append(GameObject(obj.rect.x,obj.rect.y,obj.w,obj.h,0,"game pics/odoor_r.png"))
 
+						if not pg.mixer.get_busy: 
+							sounds["door"].play()
 						intObj.remove(obj)
 
 					# print(f"key amount: {inventory.get_amount('key')}")
