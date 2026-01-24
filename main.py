@@ -1406,7 +1406,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 0
+startLevel = 2
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1616,7 +1616,7 @@ def map(down = None, up = None):
 					if appartment[i][g] == "a":
 						intObj.append(InteractionObj("Rover",["Toilet."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
 					if appartment[i][g] == "b":
-						intObj.append(InteractionObj("Rover",["the sink and mirror"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
+						smallInt.append(SmallInt(3,"game pics/nothing.png","game pics/gosling.jpg",g*tales,i*tales))
 					if appartment[i][g] == "c":
 						intObj.append(InteractionObj("Rover",["Bath."],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,False))
 					if appartment[i][g] == "t":
@@ -2478,8 +2478,10 @@ def map_blit(floor_only = None):
 						if obj.image_route == "game pics/door_r.png":
 							floor.append(GameObject(obj.rect.x,obj.rect.y,obj.w,obj.h,0,"game pics/odoor_r.png"))
 
-						if not pg.mixer.get_busy: 
+						if "door" in sounds: 
 							sounds["door"].play()
+							sounds.pop("door")
+
 						intObj.remove(obj)
 
 					# print(f"key amount: {inventory.get_amount('key')}")
