@@ -844,6 +844,7 @@ class Inventory():
 		self.inventory_panel = [None] * 6
 		self.sound = pg.mixer.Sound("sounds/pick_up.wav")
 		self.sound.set_volume(0.2 * game.volume_sfx)
+
 	
 	def volume_update(self):
 
@@ -1262,7 +1263,7 @@ class Volume_slider():
 
 		self.cords = cords
 		self.w, self.h = 300,100
-		self.mainSurface = pg.surface.Surface((self.w + self.name_width ,self.h)) 
+		self.mainSurface = pg.surface.Surface((self.w + self.name_width ,self.h),pg.SRCALPHA) 
 
 		self.slider_x_limits = (0, self.mainSurface.get_width()-25 - self.name_width)
 		self.slider = pg.Rect((self.slider_x_limits[1] * self.sliderpos), 0, 50,100)
@@ -1278,18 +1279,16 @@ class Volume_slider():
 
 		if self.slider_grabed:
 			
+			self.slider.x += game.mouse_displacement[0]
+			self.set_volume()
+			
 			if self.slider_x_limits[0] > self.slider.x:
-				self.slider_grabed = False
+
 				self.slider.x = self.slider_x_limits[0]
 			
 			elif self.slider.x > self.slider_x_limits[1]:
-				self.slider_grabed = False
-				self.slider.x = self.slider_x_limits[1]
-			
-			else:
-				self.slider.x += game.mouse_displacement[0]
-				self.set_volume()
 
+				self.slider.x = self.slider_x_limits[1]
 		
 		if event_in_queue(pg.MOUSEBUTTONUP):
 			
@@ -1325,7 +1324,8 @@ class Volume_slider():
 
 			bar_empty = pg.Rect(self.slider.right, self.slider.centery - self.slider.h/4, self.mainSurface.get_width() - self.name_width - self.slider.right, self.slider.h/2)
 
-		self.mainSurface.fill("black")
+
+		self.mainSurface.fill((0,0,0,0))
 
 		if bar_empty != None:
 			pg.draw.rect(self.mainSurface,"gray",bar_empty)
@@ -1339,13 +1339,11 @@ class Volume_slider():
 			
 		pg.draw.rect(self.mainSurface, "red" ,self.slider)
 
-		# print(f"VolSlider| Slider: {self.slider.topleft, self.slider.w, self.slider.h}")
-
 		self.mainSurface.blit(self.namebox, (self.w + 25 ,10))
 
 		screen.blit(self.mainSurface, self.cords)
 
-volume_slider = Volume_slider("SFX", (100,300))
+volume_slider = Volume_slider("VOL", (40,170)) #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # endregion Damn CLASSES
 
@@ -3132,7 +3130,7 @@ while running:
 	# print(f"Current GAME_STATE: {GAME_STATE}")
 
 	game.update()
-	fps_show()
+	
 
 	if GAME_STATE == "Main":
 
@@ -3164,7 +3162,7 @@ while running:
 		volume_slider.slider_grab()
 		
 		game.volume_sfx = volume_slider.volume
-		game.volume_music = game.volume_sfx
+		game.volume_music = volume_slider.volume
 		
 		volume_slider.draw()
 
@@ -3185,20 +3183,24 @@ while running:
 		print("WRONG GAME_STATE!!")
 		pg.quit()
 
+
+	fps_show()
+
+
 	if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
 
 		if level1progress == 0:
-			hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
+			hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
 		if inventory.get_amount("shovel") >= 1 and happened == False:    # Pomoemu eto HALTURA | da pohui
 			level1progress += 1
 			happened = True
 
 		if 3 > level1progress >=1:
-			hint_menu(["Now when I have a shovel I can bury that grave."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
+			hint_menu(["Now when I have a shovel I can bury that grave."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
 			# happened = False
 
 		if level1progress == 3:
-			hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
+			hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
 
 	if choosenLevel == appartment:
 
