@@ -96,3 +96,4 @@ Jan 24: fixed minor bugs
 Feb 9: Started linux port
 Feb 14: Volume slider in progress.
 Feb 17: Volume slider working good need to correct and polish some things for a little.
+Feb 22: Volume slider working!
