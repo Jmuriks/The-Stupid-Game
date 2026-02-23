@@ -1,6 +1,7 @@
 import pygame as pg
 import random
 import math
+import json
 from time import sleep
 pg.mixer.pre_init(44100, -16, 2, 512)
 pg.init()
@@ -342,9 +343,24 @@ class Game():
 		self.volume_sfx = 1
 		self.volume_music = 1	
 
+		self.save_data = None
+
 	def update(self):
 
 		self.mouse_displacement = pg.mouse.get_rel()
+
+	def create_save(self):
+
+		self.save_data = {
+			"player.rect": [player.rect.x, player.rect.y, player.w, player.h],
+			"inventory": inventory.inventory_panel,
+			"level": choosenLevel,
+			"level_progress": level1progress
+		}
+
+		with open("save.json","w") as file:
+			json.dump(self.save_data, file, indent=4)
+		
 
 game = Game()
 
@@ -2182,15 +2198,44 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 
 
 class Button():
-	def __innit__(self,x,y,w,h,text,color,font,fontSize):
-		self.rect.x = x
-		self.rect.y = y
-		self.w = screen.get_width()
-		self.h = screen.get_height()
-		self.color= (color)
-		self.font=pg.font.SysFont(font,fontSize)
-		self.text= font.render(text, True, color)
-		pass
+	def __innit__(self,x,y,w,h,text,color, pointed_color):
+		
+		self.rect = pg.rect.Rect(x,y,w,h)
+
+		self.pointed = False
+		self.pointed_color = pointed_color
+
+		self.pressed = False
+
+		self.color= color
+		self.font= pg.font.Font("fonts/Comic Sans MS.ttf",55)
+		self.text= self.font.render(text, True, color)
+
+	def check_pointed(self):
+
+		mouse = pg.mouse.get_pos()
+
+		if self.rect.collidepoint(mouse[0], mouse[1]):
+
+			self.pointed = True
+
+	def check_clicked(self):
+
+		mouse = pg.mouse.get_pos()
+
+		if self.rect.collidepoint(mouse[0], mouse[1]) and event_in_queue(pg.MOUSEBUTTONDOWN):
+
+			self.pressed = True
+
+	def work(self):
+
+		if not self.pointed: #Reg Button
+			pg.draw.rect(screen,self.color,self.rect)
+		else: #Point Button
+			pg.draw.rect(screen, self.pointed_color, self.rect)
+
+		screen.blit(self.text, self.rect.topleft) # text
+		
 
 def menu():
 	global controls_show
@@ -2354,6 +2399,10 @@ def screencollectables_cycle(name = None,activate = None):
 
 			if collectable.reached_max:
 				screenCollectables.remove(collectable)
+
+
+
+
 
 
 # initializing something for map_blit():
