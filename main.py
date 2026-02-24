@@ -333,6 +333,8 @@ def align_mouse_pos(surface: pg.surface.Surface, cords:tuple[int,int]) -> tuple[
 
 	return new_mouse_pos
 
+
+
 # endregion Homeless functions
 
 # region CLASSES
@@ -344,23 +346,46 @@ class Game():
 		self.volume_music = 1	
 
 		self.save_data = None
+		self.temp_save = None
 
 	def update(self):
 
 		self.mouse_displacement = pg.mouse.get_rel()
 
 	def create_save(self):
+		if self.save_data:
+			self.temp_save = self.save_data
 
-		self.save_data = {
-			"player.rect": [player.rect.x, player.rect.y, player.w, player.h],
-			"inventory": inventory.inventory_panel,
-			"level": choosenLevel,
-			"level_progress": level1progress
-		}
+		try:
+			items = [ item.name for item in inventory.inventory_panel if item]
 
-		with open("save.json","w") as file:
-			json.dump(self.save_data, file, indent=4)
+			self.save_data = {
+				"player.rect": [player.rect.x, player.rect.y, player.w, player.h],
+				"inventory": items,
+				"level": choosenLevel,
+				"level_progress": level1progress
+			}
+
+			with open("save.json","w") as file:
+				json.dump(self.save_data, file, indent=4)
+		except Exception as e:
+			print("SAVE FAILURE!!!\n",e)
+			
+			if self.temp_save:
+				with open("save.json","w") as file:
+					json.dump(self.temp_save, file, indent=4)
+
+	def load_save(self):
+		global player, choosenLevel, level1progress
+
+		with open("save.json","r") as file:
+
+			self.save_data = json.load(file)
 		
+		player.rect = self.save_data["player.rect"]
+		choosenLevel = self.save_data["level"]
+		level1progress = self.save_data["level_progress"]
+
 
 game = Game()
 
@@ -940,8 +965,6 @@ class Inventory():
 
 		screen.blit(inv_screen,(0,0))
 
-
-
 inventory = Inventory()
 
 class ScreenCollectable():
@@ -1360,6 +1383,76 @@ class Volume_slider():
 		screen.blit(self.mainSurface, self.cords)
 
 volume_slider = Volume_slider("VOL", (40,170)) #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+class Button():
+	def __init__(self,x,y,w,h,text, function, color, text_color, pointed_color, pressed_color = "green", pressed_msg = None, pressed_timer = 1000):
+		
+		self.rect = pg.rect.Rect(x,y,w,h)
+		self.color = color
+
+		self.pointed = False
+		self.pointed_color = pointed_color
+
+		self.pressed = False
+		self.pressed_color = pressed_color
+		self.pressed_msg = pressed_msg
+		self.pressed_timer = pressed_timer
+		self.last_pressed = 0
+
+		self.text_color= text_color
+		self.font= pg.font.Font("fonts/Comic Sans MS.ttf",45)
+		self.text= self.font.render(text, True, text_color)
+		self.pressed_text = self.font.render(self.pressed_msg, True, text_color)
+
+		self.function = function
+
+	def check_status(self):
+
+		mouse = pg.mouse.get_pos()
+		now = pg.time.get_ticks()
+
+		if self.rect.collidepoint(mouse[0], mouse[1]):
+
+			self.pointed = True		
+		
+		else:
+			self.pointed = False
+
+		
+		if now - self.last_pressed <= self.pressed_timer:
+			self.pressed = True
+		else:		
+			self.pressed = False
+
+	def check_clicked(self):
+		now = pg.time.get_ticks()
+
+		if self.pointed and event_in_queue(pg.MOUSEBUTTONDOWN):
+
+			self.function()
+			self.last_pressed = now
+
+	def work(self):
+
+		self.check_status()
+		self.check_clicked()
+
+		if not self.pointed and not self.pressed: 
+			pg.draw.rect(screen,self.color,self.rect)
+		elif self.pressed: 
+			pg.draw.rect(screen, self.pressed_color,self.rect)
+		else:
+			pg.draw.rect(screen, self.pointed_color, self.rect)
+
+		if not self.pressed:
+			screen.blit(self.text, (self.rect.x, self.rect.y-10)) # text
+		else:
+			screen.blit(self.pressed_text,(self.rect.x, self.rect.y-10))
+
+# Buttons:
+
+save_button = Button(675,50,140,50,"Save",game.create_save,(0,150,255),"white",(75,75,150),pressed_msg="DONE")
+
 
 # endregion Damn CLASSES
 
@@ -2194,48 +2287,7 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 			if player.rect.x < 0:
 				player.rect.x += tales
 
-			return False
-
-
-class Button():
-	def __innit__(self,x,y,w,h,text,color, pointed_color):
-		
-		self.rect = pg.rect.Rect(x,y,w,h)
-
-		self.pointed = False
-		self.pointed_color = pointed_color
-
-		self.pressed = False
-
-		self.color= color
-		self.font= pg.font.Font("fonts/Comic Sans MS.ttf",55)
-		self.text= self.font.render(text, True, color)
-
-	def check_pointed(self):
-
-		mouse = pg.mouse.get_pos()
-
-		if self.rect.collidepoint(mouse[0], mouse[1]):
-
-			self.pointed = True
-
-	def check_clicked(self):
-
-		mouse = pg.mouse.get_pos()
-
-		if self.rect.collidepoint(mouse[0], mouse[1]) and event_in_queue(pg.MOUSEBUTTONDOWN):
-
-			self.pressed = True
-
-	def work(self):
-
-		if not self.pointed: #Reg Button
-			pg.draw.rect(screen,self.color,self.rect)
-		else: #Point Button
-			pg.draw.rect(screen, self.pointed_color, self.rect)
-
-		screen.blit(self.text, self.rect.topleft) # text
-		
+			return False		
 
 def menu():
 	global controls_show
@@ -3174,9 +3226,7 @@ while running:
 			running = False
 
 	mouse = pg.mouse.get_pos()
-	now = pg.time.get_ticks() #Current time number
-
-	# print(f"Current GAME_STATE: {GAME_STATE}")
+	now = pg.time.get_ticks() 
 
 	game.update()
 	
@@ -3208,6 +3258,7 @@ while running:
 
 		inventory.draw_inventory()
 
+		save_button.work()
 		volume_slider.slider_grab()
 		
 		game.volume_sfx = volume_slider.volume
