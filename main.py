@@ -17,7 +17,7 @@ Chickibamboni=pg.transform.scale(pg.image.load("game pics/CHIKIBAMBONI(O.M.).png
 
 
 
-GAME_STATE = "Main"
+GAME_STATE = "Menu"
 
 
 # Simple Object needs to be able to move and have only
@@ -315,7 +315,8 @@ def point_in_circle(point_x,point_y,center_x,center_y,radius):
 	return distance_square <= radius**2
 
 def event_in_queue(event_type):
-	return any(event.type == event_type for event in event_queue)
+		return any(event.type == event_type for event in event_queue)
+
 
 def align_mouse_pos(surface: pg.surface.Surface, cords:tuple[int,int]) -> tuple[int,int]: 
 
@@ -357,12 +358,12 @@ class Game():
 			self.temp_save = self.save_data
 
 		try:
-			items = [ item.name for item in inventory.inventory_panel if item]
+			items = [ (item.name, item.amount) for item in inventory.inventory_panel if item]
 
 			self.save_data = {
 				"player.rect": [player.rect.x, player.rect.y, player.w, player.h],
 				"inventory": items,
-				"level": choosenLevel,
+				"level": startLevel,
 				"level_progress": level1progress
 			}
 
@@ -376,15 +377,24 @@ class Game():
 					json.dump(self.temp_save, file, indent=4)
 
 	def load_save(self):
-		global player, choosenLevel, level1progress
-
-		with open("save.json","r") as file:
-
-			self.save_data = json.load(file)
+		global player, choosenLevel, startLevel, level1progress
 		
-		player.rect = self.save_data["player.rect"]
-		choosenLevel = self.save_data["level"]
-		level1progress = self.save_data["level_progress"]
+		try:
+
+			with open("save.json","r") as file:
+
+				self.save_data = json.load(file)
+			
+			player.rect = self.save_data["player.rect"]
+			startLevel = self.save_data["level"]
+			choosenLevel = levels[self.save_data["level"]]
+			level1progress = self.save_data["level_progress"]
+
+			for i in self.save_data["inventory"]:
+				inventory.item_set_amount(i[0],i[1])
+		
+		except Exception as e:
+			print("LOAD FAILURE!!!\n",e)
 
 
 game = Game()
@@ -917,6 +927,17 @@ class Inventory():
 		except KeyError:
 			print("decrease failure")
 
+	def item_set_amount(self, name, amount):
+		
+		try:
+			self.collectables[name].amount = amount
+
+			self.update_inventory()
+
+			print(f"Item amount set: {name , amount}")
+		except KeyError:
+			print("Item amount set failure")
+
 	def get_amount(self,name):
 		try:
 
@@ -1419,7 +1440,7 @@ class Button():
 			self.pointed = False
 
 		
-		if now - self.last_pressed <= self.pressed_timer:
+		if self.last_pressed and now - self.last_pressed <= self.pressed_timer:
 			self.pressed = True
 		else:		
 			self.pressed = False
@@ -1439,19 +1460,20 @@ class Button():
 
 		if not self.pointed and not self.pressed: 
 			pg.draw.rect(screen,self.color,self.rect)
-		elif self.pressed: 
+		elif self.pressed and self.pressed_color: 
 			pg.draw.rect(screen, self.pressed_color,self.rect)
 		else:
 			pg.draw.rect(screen, self.pointed_color, self.rect)
 
 		if not self.pressed:
 			screen.blit(self.text, (self.rect.x, self.rect.y-10)) # text
-		else:
+		elif self.pressed_text:
 			screen.blit(self.pressed_text,(self.rect.x, self.rect.y-10))
 
 # Buttons:
 
 save_button = Button(675,50,140,50,"Save",game.create_save,(0,150,255),"white",(75,75,150),pressed_msg="DONE")
+load_button = Button(150,300,140,50, "Load", game.load_save,(18,53,36),"white",(133,169,71))
 
 
 # endregion Damn CLASSES
@@ -2310,6 +2332,12 @@ def menu():
 
 		screen.blit(menu_bgr, (0,0))
 		# screen.fill((62,123,39))
+		
+		load_button.work()
+		
+		if load_button.pressed:
+			menuShow = False
+		
 		mouse=pg.mouse.get_pos()
 		# Check where mouse was presseed
 		if event.type == pg.MOUSEBUTTONDOWN:
@@ -3244,6 +3272,8 @@ while running:
 		player.pause_ability()
 
 		# fps_show()
+
+	elif GAME_STATE == "Menu":
 
 	elif GAME_STATE == "Pause":
 
