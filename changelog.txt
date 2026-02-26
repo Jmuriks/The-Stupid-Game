@@ -100,3 +100,4 @@ Feb 22: Volume slider working!
 Feb 23: Saves mechanic in progress. I FOUND OUT ABOUT lambda:, and infinity args and function can be an argument. IM SO SMART RN!!
 Feb 24: Save mechanic more than half way done, ultra cool button class is created.
 Feb 25: Save/Load mechanic technically working, Need to make Game State menu and rework menu so it will work.
+Feb 25(other day): Saves working but causing bugs when loading to some locations.

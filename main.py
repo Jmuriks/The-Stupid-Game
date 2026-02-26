@@ -385,7 +385,7 @@ class Game():
 
 				self.save_data = json.load(file)
 			
-			player.rect = self.save_data["player.rect"]
+			player.rect.x, player.rect.y, player.w, player.h = self.save_data["player.rect"]
 			startLevel = self.save_data["level"]
 			choosenLevel = levels[self.save_data["level"]]
 			level1progress = self.save_data["level_progress"]
@@ -2311,84 +2311,84 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 
 			return False		
 
-def menu():
-	global controls_show
-	menu_bgr=pg.image.load("game pics/menu.png")
-	controls_pic = pg.image.load("game pics/Controls.png")
-	font=pg.font.Font('fonts/Comic Sans MS.ttf', 55)
-	color_text=(255,255,255)
-	t_quit = font.render('Quit', True , color_text)
-	t_start = font.render('Start', True , color_text)
-	t_controls = font.render('Controls', True, color_text)
-	t_quit.get_rect()
-	w=screen.get_width()
-	h=screen.get_height()
+class Menu():
+	def __init__(self):
 
-	menuShow=True
-	while menuShow:
-		for event in pg.event.get():
-			if event.type == pg.QUIT:
-				pg.quit()
+		self.controls_show = False
+		self.menu_bgr=pg.image.load("game pics/menu.png")
+		self.controls_pic = pg.image.load("game pics/Controls.png")
+		self.font=pg.font.Font('fonts/Comic Sans MS.ttf', 55)
+		self.color_text=(255,255,255)
+		self.t_quit = self.font.render('Quit', True , self.color_text)
+		self.t_start = self.font.render('Start', True , self.color_text)
+		self.t_controls = self.font.render('Controls', True, self.color_text)
+		self.t_quit.get_rect()
+		self.w=screen.get_width()
+		self.h=screen.get_height()
+		self.menuShow = True
 
-		screen.blit(menu_bgr, (0,0))
+	def show(self):
+		if not self.menuShow:
+			return
+
+		screen.blit(self.menu_bgr, (0,0))
 		# screen.fill((62,123,39))
 		
+		mouse=pg.mouse.get_pos()
+
+		if self.controls_show:
+
+			if event_in_queue(pg.MOUSEBUTTONDOWN):
+				if self.w*0.3 + 560 <= mouse[0] <= self.w*0.3 + 579 and self.h*0.3 + 2 <= mouse[1] <= self.h*0.3 + 22:
+					self.controls_show = False
+
+			screen.blit(self.controls_pic,(self.w*0.3,self.h*0.3))
+
+			return
+
 		load_button.work()
 		
 		if load_button.pressed:
-			menuShow = False
+			self.menuShow = False
 		
-		mouse=pg.mouse.get_pos()
+		
 		# Check where mouse was presseed
-		if event.type == pg.MOUSEBUTTONDOWN:
-			if w*0.16 - 70 <= mouse[0] <= w*0.16 + 30 and h/2 + 150 <= mouse[1] <= h/2 + 190:
+		if event_in_queue(pg.MOUSEBUTTONDOWN):
+			if self.w*0.16 - 70 <= mouse[0] <= self.w*0.16 + 30 and self.h/2 + 150 <= mouse[1] <= self.h/2 + 190:
 				pg.quit()
-			if w*0.16 - 75 <= mouse[0] <= w*0.16 +75 and h/2 -50 <= mouse[1] <= h/2 + 10:
-				menuShow= False
-			if w*0.16 - 110 <= mouse[0] <= w*0.16 +115 and h/2 +50 <= mouse[1] <= h/2 + 110:
-				controls_show = True
+			if self.w*0.16 - 75 <= mouse[0] <= self.w*0.16 +75 and self.h/2 -50 <= mouse[1] <= self.h/2 + 10:
+				self.menuShow= False
+			if self.w*0.16 - 110 <= mouse[0] <= self.w*0.16 +115 and self.h/2 +50 <= mouse[1] <= self.h/2 + 110:
+				self.controls_show = True
 
 			# Making Controls thing able to close
-			while controls_show:
-				for event in pg.event.get():
-					mouse=pg.mouse.get_pos()
+			
 
-					if event.type == pg.QUIT:
-						pg.quit()
-					if event.type == pg.MOUSEBUTTONDOWN:
-						if w*0.3 + 560 <= mouse[0] <= w*0.3 + 579 and h*0.3 + 2 <= mouse[1] <= h*0.3 + 22:
-							controls_show = False
-
-				screen.blit(controls_pic,(w*0.3,h*0.3))
-
-				pg.display.flip()
-				clock.tick(30)
 
 		# Check where mouse is pointing, if mouse on button or not
-		if w*0.16 - 70 <= mouse[0] <= w*0.16 + 60 and h/2 + 150 <= mouse[1] <= h/2 + 210:
-			pg.draw.rect(screen, (133,169,71), [w*0.16 - 70,h/2 + 150,130,60])
+		if self.w*0.16 - 70 <= mouse[0] <= self.w*0.16 + 60 and self.h/2 + 150 <= mouse[1] <= self.h/2 + 210:
+			pg.draw.rect(screen, (133,169,71), [self.w*0.16 - 70,self.h/2 + 150,130,60])
 
 		else:
-			pg.draw.rect(screen,(18,53,36), [w*0.16 - 70,h/2 + 150,130,60])
+			pg.draw.rect(screen,(18,53,36), [self.w*0.16 - 70,self.h/2 + 150,130,60])
 
-		if w*0.16 - 75 <= mouse[0] <= w*0.16 +75 and h/2 -50 <= mouse[1] <= h/2 + 10:
-			pg.draw.rect(screen, (133, 169, 71), [w*0.16 - 75, h/2 - 50, 150,60])
-
-		else:
-			pg.draw.rect(screen, (18,53,36), [w*0.16 - 75, h/2 - 50, 150,60])
-
-		if w*0.16 - 110 <= mouse[0] <= w*0.16 +115 and h/2 +50 <= mouse[1] <= h/2 + 110:
-			pg.draw.rect(screen, (133, 169, 71), [w*0.16 - 110, h/2 + 50, 225,60])
+		if self.w*0.16 - 75 <= mouse[0] <= self.w*0.16 +75 and self.h/2 -50 <= mouse[1] <= self.h/2 + 10:
+			pg.draw.rect(screen, (133, 169, 71), [self.w*0.16 - 75, self.h/2 - 50, 150,60])
 
 		else:
-			pg.draw.rect(screen, (18,53,36), [w*0.16 - 110, h/2 + 50, 225,60])
+			pg.draw.rect(screen, (18,53,36), [self.w*0.16 - 75, self.h/2 - 50, 150,60])
 
-		screen.blit(t_quit, (w*0.16 - 65, h/2 + 140))
-		screen.blit(t_start, (w*0.16 - 70, h/2 - 60))
-		screen.blit(t_controls,(w*0.16 - 105, h/2 + 40))
+		if self.w*0.16 - 110 <= mouse[0] <= self.w*0.16 +115 and self.h/2 +50 <= mouse[1] <= self.h/2 + 110:
+			pg.draw.rect(screen, (133, 169, 71), [self.w*0.16 - 110, self.h/2 + 50, 225,60])
 
-		pg.display.flip()
-		clock.tick(30)
+		else:
+			pg.draw.rect(screen, (18,53,36), [self.w*0.16 - 110, self.h/2 + 50, 225,60])
+
+		screen.blit(self.t_quit, (self.w*0.16 - 65, self.h/2 + 140))
+		screen.blit(self.t_start, (self.w*0.16 - 70, self.h/2 - 60))
+		screen.blit(self.t_controls,(self.w*0.16 - 105, self.h/2 + 40))
+
+menu = Menu()
 
 def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,line_lenght = 20):
 	alpha_surface = pg.Surface((w, h),pg.SRCALPHA)  #Making surface that able to be transparent
@@ -3240,8 +3240,6 @@ minigame = None
 
 exitzone = Exit_zone(tales*16,tales*21,tales*2,tales)
 
-menu()
-map()
 running=True
 while running:
 	events = pg.event.get()
@@ -3274,6 +3272,14 @@ while running:
 		# fps_show()
 
 	elif GAME_STATE == "Menu":
+
+		menu.show()
+
+		if not menu.menuShow:
+
+			GAME_STATE = "Main"
+
+			map()
 
 	elif GAME_STATE == "Pause":
 
@@ -3316,46 +3322,46 @@ while running:
 
 	fps_show()
 
+	if GAME_STATE == "Main":
+		if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
 
-	if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
+			if level1progress == 0:
+				hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
+			if inventory.get_amount("shovel") >= 1 and happened == False:    # Pomoemu eto HALTURA | da pohui
+				level1progress += 1
+				happened = True
 
-		if level1progress == 0:
-			hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
-		if inventory.get_amount("shovel") >= 1 and happened == False:    # Pomoemu eto HALTURA | da pohui
-			level1progress += 1
-			happened = True
+			if 3 > level1progress >=1:
+				hint_menu(["Now when I have a shovel I can bury that grave."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
+				# happened = False
 
-		if 3 > level1progress >=1:
-			hint_menu(["Now when I have a shovel I can bury that grave."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
-			# happened = False
+			if level1progress == 3:
+				hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
 
-		if level1progress == 3:
-			hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
+		if choosenLevel == appartment:
 
-	if choosenLevel == appartment:
+			if level1progress == 0:
+				hint_menu(["You feel sleepy."],tales*8,tales,tales*2,0,40)
 
-		if level1progress == 0:
-			hint_menu(["You feel sleepy."],tales*8,tales,tales*2,0,40)
+		if choosenLevel == appartment_1:
 
-	if choosenLevel == appartment_1:
+			if level1progress == 0:
+				hint_menu(["I need to brush my teeth."],tales*8,tales,tales*2,0,40)
 
-		if level1progress == 0:
-			hint_menu(["I need to brush my teeth."],tales*8,tales,tales*2,0,40)
+			if level1progress >= 1:
+				hint_menu(["I should go check basement."],tales*8,tales,tales*2,0,40)
 
-		if level1progress >= 1:
-			hint_menu(["I should go check basement."],tales*8,tales,tales*2,0,40)
+		if choosenLevel == basement_stasa and pipefix.completed:
 
-	if choosenLevel == basement_stasa and pipefix.completed:
+			exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
 
-		exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
+			if player.rect.colliderect(exit_stas.rect):
+				if travel("Rover", ["Wanna leave?"],jump_over=1) == False:
+					player.rect.y -= tales
 
-		if player.rect.colliderect(exit_stas.rect):
-			if travel("Rover", ["Wanna leave?"],jump_over=1) == False:
-				player.rect.y -= tales
+		if choosenLevel == final_appartment and GAME_STATE == "Main":
 
-	if choosenLevel == final_appartment and GAME_STATE == "Main":
-
-		hint_menu(["I wanna take a bath."],tales*8,tales,tales*2,0,40)
+			hint_menu(["I wanna take a bath."],tales*8,tales,tales*2,0,40)
 
 
 #Put the game before this line
