@@ -346,8 +346,12 @@ class Game():
 		self.volume_sfx = 1
 		self.volume_music = 1	
 
+		self.enable_saves = False
+		
 		self.save_data = None
 		self.temp_save = None
+
+		
 
 	def update(self):
 
@@ -1366,9 +1370,7 @@ class Volume_slider():
 		inventory.volume_update()
 		
 		for sound in sounds:
-			sounds[sound].set_volume(self.volume)
-
-		
+			sounds[sound].set_volume(self.volume)		
 
 	def draw(self):
 
@@ -1470,11 +1472,74 @@ class Button():
 		elif self.pressed_text:
 			screen.blit(self.pressed_text,(self.rect.x, self.rect.y-10))
 
+class SwitchButton():
+	def __init__(self,x,y,w,h, game_parametr_name, text, color_text = "white", color_true = "green", color_false = "red", color_slider = "blue"):
+		self.rect = pg.rect.Rect(x,y,w,h)
+		self.rect.x = x
+		self.rect.y = y
+
+		self.game_parametr_name = game_parametr_name
+		self.game_parametr = getattr(game, game_parametr_name)
+
+		self.slider = pg.rect.Rect(x,y,w/4,h)
+		if self.game_parametr:
+			self.slider.x = x+(w - w/4)
+		else:
+			self.slider.x = x
+
+		self.pos_bar = pg.rect.Rect(x, y+(h/4), self.slider.x - x, h/2)
+		self.neg_bar = pg.rect.Rect(self.slider.right, y+(h/4), w - self.slider.right, h/2)
+
+		self.color_slider = color_slider
+		self.color_text = color_text
+		self.color_true = color_true
+		self.color_false = color_false
+		
+		self.font = pg.font.Font("fonts/Comic Sans MS.ttf",45)
+		if text:
+			self.text = self.font.render(text, True, self.color_text)
+			self.text_rect = self.text.get_rect(midleft = (self.rect.midright))
+		else:
+			self.text, self.text_rect = None, None
+
+		self.last_press = 0
+		self.cooldown = 200
+	
+	def update(self):
+		
+		mouse = pg.mouse.get_pos()
+		now = pg.time.get_ticks()
+
+		if event_in_queue(pg.MOUSEBUTTONDOWN) and now - self.last_press > self.cooldown and self.rect.collidepoint(*mouse):
+			self.last_press = now
+			
+			self.game_parametr = not self.game_parametr
+
+			setattr(game, self.game_parametr_name, self.game_parametr)
+
+		if self.game_parametr:
+			self.slider.x = self.rect.x+(self.rect.w - self.rect.w/4)
+		else:
+			self.slider.x = self.rect.x
+
+		self.pos_bar = pg.rect.Rect(self.rect.x, self.rect.y+(self.rect.h/4), self.slider.x - self.rect.x, self.rect.h/2)
+		self.neg_bar = pg.rect.Rect(self.slider.right, self.rect.y+(self.rect.h/4), self.rect.w - (self.slider.right - self.rect.x+1), self.rect.h/2) # late night coding
+
+	def draw(self):
+
+		pg.draw.rect(screen, self.color_slider, self.slider)
+		pg.draw.rect(screen, self.color_true, self.pos_bar)
+		pg.draw.rect(screen, self.color_false, self.neg_bar)
+
+		if self.text:
+			screen.blit(self.text, self.text_rect)
+
 # Buttons:
 
 save_button = Button(675,50,140,50,"Save",game.create_save,(0,150,255),"white",(75,75,150),pressed_msg="DONE")
-load_button = Button(150,300,140,50, "Load", game.load_save,(18,53,36),"white",(133,169,71))
+load_button = Button(205,370,100,50, "Load", game.load_save,(18,53,36),"white",(133,169,71))
 
+save_switch = SwitchButton(50,50,100,80,"enable_saves","Enable Saves *buggy*")
 
 # endregion Damn CLASSES
 
@@ -2346,11 +2411,12 @@ class Menu():
 
 			return
 
-		load_button.work()
-		
-		if load_button.pressed:
-			self.menuShow = False
-		
+		if game.enable_saves:
+			load_button.work()
+			
+			if load_button.pressed:
+				self.menuShow = False
+			
 		
 		# Check where mouse was presseed
 		if event_in_queue(pg.MOUSEBUTTONDOWN):
@@ -3275,6 +3341,9 @@ while running:
 
 		menu.show()
 
+		save_switch.update()
+		save_switch.draw()
+
 		if not menu.menuShow:
 
 			GAME_STATE = "Main"
@@ -3294,7 +3363,9 @@ while running:
 
 		inventory.draw_inventory()
 
-		save_button.work()
+		if game.enable_saves:
+			save_button.work()
+
 		volume_slider.slider_grab()
 		
 		game.volume_sfx = volume_slider.volume
