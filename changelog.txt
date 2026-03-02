@@ -102,3 +102,4 @@ Feb 24: Save mechanic more than half way done, ultra cool button class is create
 Feb 25: Save/Load mechanic technically working, Need to make Game State menu and rework menu so it will work.
 Feb 25(other day): Saves working but causing bugs when loading to some locations.
 Feb 27: Made Switch Button in main menu for player to decide whether he wants buggy saves or not.
+March 1: THE END: I tried to compile game to linux it compiled but somehow player controls not working so I gonna leave it how it is and move on to other projects. I tried, and I tired.

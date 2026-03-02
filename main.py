@@ -2,6 +2,8 @@ import pygame as pg
 import random
 import math
 import json
+import sys
+import os
 from time import sleep
 pg.mixer.pre_init(44100, -16, 2, 512)
 pg.init()
@@ -13,11 +15,17 @@ clock = pg.time.Clock()
 
 pg.display.set_caption("Hello")
 
-Chickibamboni=pg.transform.scale(pg.image.load("game pics/CHIKIBAMBONI(O.M.).png"),(80*12,80*11))
-
-
 
 GAME_STATE = "Menu"
+
+
+def res_path(relevant_path):
+	try:
+		base_path = sys._MEIPASS
+	except:
+		base_path = os.path.abspath(".")
+
+	return os.path.join(base_path, relevant_path)
 
 
 # Simple Object needs to be able to move and have only
@@ -27,7 +35,7 @@ class GameObject():
 	def __init__(self,x,y,w,h,speed,image_route,index = None,layer = 0):
 		if image_route != None:
 
-			self.image = pg.transform.scale(pg.image.load(image_route),(w,h)).convert_alpha()
+			self.image = pg.transform.scale(pg.image.load(res_path(image_route)),(w,h)).convert_alpha()
 			self.rect= self.image.get_rect()
 			self.rect.x=x
 			self.rect.y=y
@@ -49,7 +57,7 @@ class GameObject():
 
 	def reload(self,image_route,x,y,w=tales,h=tales,speed=0):
 		self.image_route = image_route
-		self.image = pg.transform.scale(pg.image.load(image_route),(w,h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_route)),(w,h))
 		self.rect= self.image.get_rect()
 		self.rect.x=x
 		self.rect.y=y
@@ -61,7 +69,7 @@ class GameObject():
 		screen.blit(self.image , (self.rect.x, self.rect.y))
 
 	def reload_image(self):
-		self.image = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(self.image_route)),(self.w,self.h))
 
 	# Target and move to target copied from player class to make non player objects able to move.
 
@@ -143,6 +151,7 @@ def string_divide(lst,s_lenght): #divide long text in several strings | made for
 
 	return segments
 def print_text(surface,text,font_path,size,x,y, colour = "white"):
+	font_path = res_path(font_path)
 	fontt = pg.font.Font(font_path,size)
 	text = fontt.render(text, True, colour)
 
@@ -156,9 +165,9 @@ def dialog_menu(dialogue, line_lenght,name,question):
 	page = 0
 	page_text = dialogue[page]
 
-	fontName = pg.font.Font("fonts/Comic Sans MS.ttf", 55)
-	fontTalk = pg.font.Font("fonts/Comic Sans MS.ttf", 55)
-	fontF = pg.font.Font("fonts/Comic Sans MS.ttf", 55)
+	fontName = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+	fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+	fontF = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
 
 	#print(f"[DEBUG] name = {name} | type = {type(name)}")
 
@@ -317,7 +326,6 @@ def point_in_circle(point_x,point_y,center_x,center_y,radius):
 def event_in_queue(event_type):
 		return any(event.type == event_type for event in event_queue)
 
-
 def align_mouse_pos(surface: pg.surface.Surface, cords:tuple[int,int]) -> tuple[int,int]: 
 
 	real_w,real_h = screen.get_size()
@@ -333,6 +341,7 @@ def align_mouse_pos(surface: pg.surface.Surface, cords:tuple[int,int]) -> tuple[
 		new_mouse_pos = (-1, -1) 
 
 	return new_mouse_pos
+
 
 
 
@@ -411,17 +420,17 @@ class Player(GameObject):
 		super().__init__(x, y, w, h, speed, image)
 
 		self.direction = 0
-		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction).convert_alpha()
+		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(res_path(image)),(tales,tales)), self.direction).convert_alpha()
 		self.target = None
 		self.move_progress = None
 		self.allowed_exits = [True,True,True,True] # Top , Bottom , Left , Right.
 		self.current_level = None
 		self.last_level = None
 
-		sound1 = pg.mixer.Sound("sounds/invalid.wav")
+		sound1 = pg.mixer.Sound(res_path("sounds/invalid.wav"))
 		sound1.set_volume(0.2 * game.volume_sfx)
 
-		sound2 = pg.mixer.Sound("sounds/invalid1.wav")
+		sound2 = pg.mixer.Sound(res_path("sounds/invalid1.wav"))
 		sound2.set_volume(0.2 * game.volume_sfx)
 
 		self.walk_sound = [sound1,sound2]
@@ -437,7 +446,7 @@ class Player(GameObject):
 
 			for anim in self.animation_route:
 				
-				img = pg.transform.scale(pg.image.load(anim),(tales,tales)).convert_alpha()
+				img = pg.transform.scale(pg.image.load(res_path(anim)),(tales,tales)).convert_alpha()
 
 				self.animation.append(img)
 
@@ -623,7 +632,7 @@ class Player(GameObject):
 
 		else:
 
-			self.image = pg.transform.rotate(pg.transform.scale(pg.image.load("game pics/rover/TheRoverIdle.png"),(tales,tales)), self.direction).convert_alpha()
+			self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(res_path("game pics/rover/TheRoverIdle.png")),(tales,tales)), self.direction).convert_alpha()
 
 	def pause_ability(self):
 		global GAME_STATE 
@@ -646,8 +655,8 @@ player = Player(tales,tales,tales,tales,tales/8,"game pics/rover/TheRoverIdle.pn
 class InteractionObj(GameObject):
 	def __init__(self,name,dialogue, x, y, w, h, speed, image_route,line_lenght,int_mode,question,index = None, custom = False):
 		super().__init__(x, y, w, h, speed, image_route)
-		self.fontName = pg.font.Font("fonts/Comic Sans MS.ttf", 55)
-		self.fontTalk = pg.font.Font("fonts/Comic Sans MS.ttf", 55)
+		self.fontName = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+		self.fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
 		self.name = name
 		self.name_out=self.fontName.render(name, True, "white")
 		self.int_mode =int(int_mode)
@@ -737,8 +746,8 @@ class InteractionObj(GameObject):
 		dialog_menu([f"Do you want to use {item} x{amount}?"],40,"Rover",True)
 
 	def change(self,name,dialogue,image_route,line_lenght,int_mode,question,index = None,w = tales, h=tales):
-		self.fontName = pg.font.Font("fonts/Comic Sans MS.ttf", 55)
-		self.fontTalk = pg.font.Font("fonts/Comic Sans MS.ttf", 55)
+		self.fontName = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+		self.fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
 		self.name = name
 		self.name_out=self.fontName.render(name, True, "white")
 		self.int_mode =int(int_mode)
@@ -748,7 +757,7 @@ class InteractionObj(GameObject):
 		self.answer = None
 		self.index = index
 		self.image_route = image_route
-		self.image = pg.transform.scale(pg.image.load(image_route),(w,h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_route)),(w,h))
 
 class SmallInt():
 	def __init__(self, int_mode,image_route,imagebig_route,x,y, simple_pic = True ,index = None, w = 800, h = 600, layer = 0 ):
@@ -759,9 +768,9 @@ class SmallInt():
 		self.bigw = w
 		self.bigh = h
 		self.image_route = image_route
-		self.image1 = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h)).convert_alpha()
+		self.image1 = pg.transform.scale(pg.image.load(res_path(self.image_route)),(self.w,self.h)).convert_alpha()
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
+		self.imagebig = pg.transform.scale(pg.image.load(res_path(self.imagebig_route)),(self.bigw,self.bigh)).convert_alpha()
 		self.rect = self.image1.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -826,7 +835,7 @@ class SmallInt():
 	def new_imagebig(self,imagebig_route,w = 800,h = 600):
 
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
+		self.imagebig = pg.transform.scale(pg.image.load(res_path(self.imagebig_route)),(self.bigw,self.bigh)).convert_alpha()
 
 		self.bigw = w
 		self.bigh = h
@@ -843,7 +852,7 @@ class Item():
 		self.amount = 0
 		self.w = 50
 		self.h = 50
-		self.image = pg.transform.scale(pg.image.load(image_path), (self.w,self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_path)), (self.w,self.h))
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -866,7 +875,7 @@ class IntItem(Item):
 		self.used = 0
 		self.w = tales
 		self.h = tales
-		self.image = pg.transform.scale(pg.image.load(image_path), (self.w,self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_path)), (self.w,self.h))
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -897,7 +906,7 @@ class Inventory():
 		}
 
 		self.inventory_panel = [None] * 6
-		self.sound = pg.mixer.Sound("sounds/pick_up.wav")
+		self.sound = pg.mixer.Sound(res_path("sounds/pick_up.wav"))
 		self.sound.set_volume(0.2 * game.volume_sfx)
 
 	
@@ -998,7 +1007,7 @@ class ScreenCollectable():
 		self.w = w
 		self.h = h
 		self.image_route = image_route
-		self.image = pg.transform.scale(pg.image.load(self.image_route),(self.w, self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(self.image_route)),(self.w, self.h))
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -1129,7 +1138,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 		if self.sizes_w[turn] == tales and self.sizes_h[turn] == tales or dont:
 			self.rect.x = self.init_x
 			self.rect.y = self.init_y
-			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
+			self.image = pg.transform.scale(pg.image.load(res_path(self.sprites[turn])),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
 			return
 		else:
 			# print(f"Effects | intit_x + tales/2 - size_w/2 | {self.init_x} + {tales/2} - {self.sizes_w[turn]/2} | turn = {turn}")
@@ -1155,7 +1164,7 @@ class PipefixMinigame():
 		self.patches = []
 
 		self.surface = pg.Surface((500,500))
-		self.background = pg.transform.scale(pg.image.load("game pics/pipehole.png"),(500,500))
+		self.background = pg.transform.scale(pg.image.load(res_path("game pics/pipehole.png")),(500,500))
 
 		self.hole = [(166,283),(246,283),(246,203),(190,203),(208,246)]
 		self.hole_points_covered = []
@@ -1320,7 +1329,7 @@ class Volume_slider():
 		self.sliderpos = 1
 		self.volume = 1
 
-		self.font = pg.font.Font("fonts/Comic Sans MS.ttf",55) # 120p to the right is preserved
+		self.font = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"),55) # 120p to the right is preserved
 		self.name = name
 		self.namebox = self.font.render(name,1,"white")
 		self.name_width = self.namebox.get_width() +35
@@ -1423,7 +1432,7 @@ class Button():
 		self.last_pressed = 0
 
 		self.text_color= text_color
-		self.font= pg.font.Font("fonts/Comic Sans MS.ttf",45)
+		self.font= pg.font.Font(res_path("fonts/Comic Sans MS.ttf"),45)
 		self.text= self.font.render(text, True, text_color)
 		self.pressed_text = self.font.render(self.pressed_msg, True, text_color)
 
@@ -1495,7 +1504,7 @@ class SwitchButton():
 		self.color_true = color_true
 		self.color_false = color_false
 		
-		self.font = pg.font.Font("fonts/Comic Sans MS.ttf",45)
+		self.font = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"),45)
 		if text:
 			self.text = self.font.render(text, True, self.color_text)
 			self.text_rect = self.text.get_rect(midleft = (self.rect.midright))
@@ -1738,13 +1747,13 @@ playing_music = None
 
 pipefix = PipefixMinigame()
 
-map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales)).convert()
-map_chupep_low = pg.transform.scale(pg.image.load("game pics/chupep_down.png"),screen.get_size()).convert()
-map_chupep_up = pg.transform.scale(pg.image.load("game pics/chupep_up.png"),screen.get_size()).convert_alpha()
-map_stas_low = pg.transform.scale(pg.image.load("game pics/karta_stasa_low.png"),(45*25,45*25)).convert()
-map_stas_up = pg.transform.scale(pg.image.load("game pics/karta_stasa_up.png"),(45*25,45*25)).convert_alpha()
-map_yura_low = pg.transform.scale(pg.image.load("game pics/basement_yura_low.png"),(60*20,60*14)).convert()
-map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png"),(60*20,60*14)).convert_alpha()
+map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales)).convert()
+map_chupep_low = pg.transform.scale(pg.image.load(res_path("game pics/chupep_down.png")),screen.get_size()).convert()
+map_chupep_up = pg.transform.scale(pg.image.load(res_path("game pics/chupep_up.png")),screen.get_size()).convert_alpha()
+map_stas_low = pg.transform.scale(pg.image.load(res_path("game pics/karta_stasa_low.png")),(45*25,45*25)).convert()
+map_stas_up = pg.transform.scale(pg.image.load(res_path("game pics/karta_stasa_up.png")),(45*25,45*25)).convert_alpha()
+map_yura_low = pg.transform.scale(pg.image.load(res_path("game pics/basement_yura_low.png")),(60*20,60*14)).convert()
+map_yura_up = pg.transform.scale(pg.image.load(res_path("game pics/basement_yura_up.png")),(60*20,60*14)).convert_alpha()
 
 togo_levels = None
 
@@ -1853,10 +1862,10 @@ def map(down = None, up = None, music_vol_update = None):
 
 			print ("map | CL = karta1")
 
-			music["rain"] = pg.mixer.music.load("sounds/rain.wav")
+			music["rain"] = pg.mixer.music.load(res_path("sounds/rain.wav"))
 			pg.mixer.music.play(-1)
 
-			sounds["shovel"] = pg.mixer.Sound("sounds/shovel.wav")
+			sounds["shovel"] = pg.mixer.Sound(res_path("sounds/shovel.wav"))
 
 			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
 
@@ -1966,18 +1975,18 @@ def map(down = None, up = None, music_vol_update = None):
 
 			tales = 80
 			screen = pg.display.set_mode((tales*12,tales*11))
-			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
+			map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales))
 
 			player.target = None
 			# player.rect.x , player.rect.y =(tales, tales*2)
 			player.__init__(tales,tales*2,tales,tales,tales/10,"game pics/avatar.png")
 
 			pg.mixer.music.unload()
-			pg.mixer.music.load("sounds/cipher.mp3")
+			pg.mixer.music.load(res_path("sounds/cipher.mp3"))
 			pg.mixer.music.set_volume(0.1 * game.volume_music)
 			pg.mixer.music.play(-1)
 
-			sounds["fridge"] = pg.mixer.Sound("sounds/fridge.mp3")
+			sounds["fridge"] = pg.mixer.Sound(res_path("sounds/fridge.mp3"))
 
 			print("map | CL = appartment")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
@@ -2019,7 +2028,7 @@ def map(down = None, up = None, music_vol_update = None):
 
 			tales = 80
 			screen = pg.display.set_mode((tales*12,tales*11))
-			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
+			map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales))
 
 			player.target = None
 
@@ -2075,7 +2084,7 @@ def map(down = None, up = None, music_vol_update = None):
 				player.set_direction(0)
 
 				pg.mixer.music.unload()
-				pg.mixer.music.load("sounds/basement.mp3")
+				pg.mixer.music.load(res_path("sounds/basement.mp3"))
 				pg.mixer.music.set_volume(0.5 * game.volume_music)
 				pg.mixer.music.play(-1)
 
@@ -2088,7 +2097,7 @@ def map(down = None, up = None, music_vol_update = None):
 
 			screen.blit(map_stas_low,(0,0,tales*25,tales*25))
 
-			sounds["door"] = pg.mixer.Sound("sounds/door.mp3")
+			sounds["door"] = pg.mixer.Sound(res_path("sounds/door.mp3"))
 
 			for i in range(len(basement_stasa)):
 				for g in range(len(basement_stasa[i])):
@@ -2132,9 +2141,9 @@ def map(down = None, up = None, music_vol_update = None):
 
 			print (f"togo_levels during map = {togo_levels}")
 
-			sounds["boom"] = pg.mixer.Sound("sounds/explosion.ogg")
+			sounds["boom"] = pg.mixer.Sound(res_path("sounds/explosion.ogg"))
 			sounds["boom"].set_volume(0.5 * game.volume_sfx)
-			sounds["lever"] = pg.mixer.Sound("sounds/light_switch.mp3")
+			sounds["lever"] = pg.mixer.Sound(res_path("sounds/light_switch.mp3"))
 
 			for i in range(len(basement_yura)):
 				for g in range(len(basement_yura[i])):
@@ -2174,7 +2183,7 @@ def map(down = None, up = None, music_vol_update = None):
 
 			tales = 80
 			screen = pg.display.set_mode((tales*12,tales*11))
-			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
+			map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales))
 
 			player.target = None
 			player.__init__(tales,tales*2,tales,tales,tales/10,player.image_route)
@@ -2184,7 +2193,7 @@ def map(down = None, up = None, music_vol_update = None):
 			screen.blit(map_app,(0,0,12*tales,11*tales))
 
 			pg.mixer.music.unload()
-			pg.mixer.music.load("sounds/cipher.mp3")
+			pg.mixer.music.load(res_path("sounds/cipher.mp3"))
 			pg.mixer.music.set_volume(0.1 * game.volume_music)
 			pg.mixer.music.play(-1)
 
@@ -2380,9 +2389,9 @@ class Menu():
 	def __init__(self):
 
 		self.controls_show = False
-		self.menu_bgr=pg.image.load("game pics/menu.png")
-		self.controls_pic = pg.image.load("game pics/Controls.png")
-		self.font=pg.font.Font('fonts/Comic Sans MS.ttf', 55)
+		self.menu_bgr=pg.image.load(res_path("game pics/menu.png"))
+		self.controls_pic = pg.image.load(res_path("game pics/Controls.png"))
+		self.font=pg.font.Font(res_path('fonts/Comic Sans MS.ttf'), 55)
 		self.color_text=(255,255,255)
 		self.t_quit = self.font.render('Quit', True , self.color_text)
 		self.t_start = self.font.render('Start', True , self.color_text)
@@ -2497,7 +2506,7 @@ def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,li
 
 		# print("hint_menu | strings =", strings)
 
-	fontTalk = pg.font.Font("fonts/Comic Sans MS.ttf", 32)
+	fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 32)
 
 	line1=fontTalk.render(strings[0], True, "white") # What is person saying
 	if len(strings)>1:
@@ -2557,7 +2566,7 @@ lastlevel = None   # We already have player.last_level but this thing here to in
 
 event_queue = None
 
-
+Chickibamboni=pg.transform.scale(pg.image.load(res_path("game pics/CHIKIBAMBONI.png")),(80*12,80*11))
 
 def map_blit(floor_only = None):
 	global level1progress , happened , lastlevel, GAME_STATE, minigame
