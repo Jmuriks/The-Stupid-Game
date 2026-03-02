@@ -1,6 +1,9 @@
 import pygame as pg
 import random
 import math
+import json
+import sys
+import os
 from time import sleep
 pg.mixer.pre_init(44100, -16, 2, 512)
 pg.init()
@@ -12,13 +15,17 @@ clock = pg.time.Clock()
 
 pg.display.set_caption("Hello")
 
-Chickibamboni=pg.transform.scale(pg.image.load("game pics/CHIKIBAMBONI(O.M.).png"),(80*12,80*11))
 
-volume_sfx = 0.2
-volume_music = 0.1
+GAME_STATE = "Menu"
 
 
-GAME_STATE = "Main"
+def res_path(relevant_path):
+	try:
+		base_path = sys._MEIPASS
+	except:
+		base_path = os.path.abspath(".")
+
+	return os.path.join(base_path, relevant_path)
 
 
 # Simple Object needs to be able to move and have only
@@ -28,7 +35,7 @@ class GameObject():
 	def __init__(self,x,y,w,h,speed,image_route,index = None,layer = 0):
 		if image_route != None:
 
-			self.image = pg.transform.scale(pg.image.load(image_route),(w,h)).convert_alpha()
+			self.image = pg.transform.scale(pg.image.load(res_path(image_route)),(w,h)).convert_alpha()
 			self.rect= self.image.get_rect()
 			self.rect.x=x
 			self.rect.y=y
@@ -50,7 +57,7 @@ class GameObject():
 
 	def reload(self,image_route,x,y,w=tales,h=tales,speed=0):
 		self.image_route = image_route
-		self.image = pg.transform.scale(pg.image.load(image_route),(w,h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_route)),(w,h))
 		self.rect= self.image.get_rect()
 		self.rect.x=x
 		self.rect.y=y
@@ -62,7 +69,7 @@ class GameObject():
 		screen.blit(self.image , (self.rect.x, self.rect.y))
 
 	def reload_image(self):
-		self.image = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(self.image_route)),(self.w,self.h))
 
 	# Target and move to target copied from player class to make non player objects able to move.
 
@@ -143,8 +150,9 @@ def string_divide(lst,s_lenght): #divide long text in several strings | made for
 	segments = [text[i:i+s_lenght] for i in range(0,len(text),s_lenght)] #nahui + zalupa + pizda + gandon + eblan
 
 	return segments
-def print_text(surface,text,font,size,x,y, colour = "white"):
-	fontt = pg.font.SysFont(font,size)
+def print_text(surface,text,font_path,size,x,y, colour = "white"):
+	font_path = res_path(font_path)
+	fontt = pg.font.Font(font_path,size)
 	text = fontt.render(text, True, colour)
 
 	surface.blit(text, (x,y))
@@ -157,9 +165,9 @@ def dialog_menu(dialogue, line_lenght,name,question):
 	page = 0
 	page_text = dialogue[page]
 
-	fontName = pg.font.SysFont("Comic Sans", 55)
-	fontTalk = pg.font.SysFont("Comic Sans", 55)
-	fontF = pg.font.SysFont("Comic Sans", 55)
+	fontName = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+	fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+	fontF = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
 
 	#print(f"[DEBUG] name = {name} | type = {type(name)}")
 
@@ -266,7 +274,7 @@ def dialog_menu(dialogue, line_lenght,name,question):
 			if page == len(dialogue) - 1:
 				if question == True:
 
-					print_text(dialog_surface,"Y = yes, N = No","Comic Sans",40,w*0.39375, h*0.9)
+					print_text(dialog_surface,"Y = yes, N = No","fonts/Comic Sans MS.ttf",40,w*0.39375, h*0.9)
 
 					if pg.key.get_pressed()[pg.K_y]:
 
@@ -316,10 +324,93 @@ def point_in_circle(point_x,point_y,center_x,center_y,radius):
 	return distance_square <= radius**2
 
 def event_in_queue(event_type):
-	return any(event.type == event_type for event in event_queue)
+		return any(event.type == event_type for event in event_queue)
+
+def align_mouse_pos(surface: pg.surface.Surface, cords:tuple[int,int]) -> tuple[int,int]: 
+
+	real_w,real_h = screen.get_size()
+	surf_w, surf_h = surface.get_size()
+	m_pos = pg.mouse.get_pos()
+
+	if cords[0] < m_pos[0] < cords[0] + surf_w and cords[1] < m_pos[1] < cords[1]+surf_h:
+
+		new_mouse_pos = (m_pos[0] - cords[0], m_pos[1] - cords[1])
+
+	else: # When mouse not on surface
+
+		new_mouse_pos = (-1, -1) 
+
+	return new_mouse_pos
+
+
+
+
 # endregion Homeless functions
 
 # region CLASSES
+
+class Game():
+	def __init__(self):
+		self.mouse_displacement = None
+		self.volume_sfx = 1
+		self.volume_music = 1	
+
+		self.enable_saves = False
+		
+		self.save_data = None
+		self.temp_save = None
+
+		
+
+	def update(self):
+
+		self.mouse_displacement = pg.mouse.get_rel()
+
+	def create_save(self):
+		if self.save_data:
+			self.temp_save = self.save_data
+
+		try:
+			items = [ (item.name, item.amount) for item in inventory.inventory_panel if item]
+
+			self.save_data = {
+				"player.rect": [player.rect.x, player.rect.y, player.w, player.h],
+				"inventory": items,
+				"level": startLevel,
+				"level_progress": level1progress
+			}
+
+			with open("save.json","w") as file:
+				json.dump(self.save_data, file, indent=4)
+		except Exception as e:
+			print("SAVE FAILURE!!!\n",e)
+			
+			if self.temp_save:
+				with open("save.json","w") as file:
+					json.dump(self.temp_save, file, indent=4)
+
+	def load_save(self):
+		global player, choosenLevel, startLevel, level1progress
+		
+		try:
+
+			with open("save.json","r") as file:
+
+				self.save_data = json.load(file)
+			
+			player.rect.x, player.rect.y, player.w, player.h = self.save_data["player.rect"]
+			startLevel = self.save_data["level"]
+			choosenLevel = levels[self.save_data["level"]]
+			level1progress = self.save_data["level_progress"]
+
+			for i in self.save_data["inventory"]:
+				inventory.item_set_amount(i[0],i[1])
+		
+		except Exception as e:
+			print("LOAD FAILURE!!!\n",e)
+
+
+game = Game()
 
 class Player(GameObject):
 
@@ -329,18 +420,18 @@ class Player(GameObject):
 		super().__init__(x, y, w, h, speed, image)
 
 		self.direction = 0
-		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(image),(tales,tales)), self.direction).convert_alpha()
+		self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(res_path(image)),(tales,tales)), self.direction).convert_alpha()
 		self.target = None
 		self.move_progress = None
 		self.allowed_exits = [True,True,True,True] # Top , Bottom , Left , Right.
 		self.current_level = None
 		self.last_level = None
 
-		sound1 = pg.mixer.Sound("sounds/invalid.wav")
-		sound1.set_volume(0.2)
+		sound1 = pg.mixer.Sound(res_path("sounds/invalid.wav"))
+		sound1.set_volume(0.2 * game.volume_sfx)
 
-		sound2 = pg.mixer.Sound("sounds/invalid1.wav")
-		sound2.set_volume(0.2)
+		sound2 = pg.mixer.Sound(res_path("sounds/invalid1.wav"))
+		sound2.set_volume(0.2 * game.volume_sfx)
 
 		self.walk_sound = [sound1,sound2]
 		
@@ -349,15 +440,19 @@ class Player(GameObject):
 		self.anim_turn = 0
 		self.animation = []
 
+		self.last_pause_time = 0
+
 		if self.animation_route != None:
 
 			for anim in self.animation_route:
 				
-				img = pg.transform.scale(pg.image.load(anim),(tales,tales)).convert_alpha()
+				img = pg.transform.scale(pg.image.load(res_path(anim)),(tales,tales)).convert_alpha()
 
 				self.animation.append(img)
 
-		
+	def volume_update(self):
+		self.walk_sound[0].set_volume(0.2 * game.volume_sfx)
+		self.walk_sound[1].set_volume(0.2 * game.volume_sfx)
 
 	def in_front(self,obj_rect):
 
@@ -501,8 +596,7 @@ class Player(GameObject):
 				self.set_direction(180)
 				if self.set_target(0, 1):
 					self.play_walk_sound()
-
-			
+		
 
 		if self.target:
 			self.move_to_target()
@@ -538,9 +632,21 @@ class Player(GameObject):
 
 		else:
 
-			self.image = pg.transform.rotate(pg.transform.scale(pg.image.load("game pics/rover/TheRoverIdle.png"),(tales,tales)), self.direction).convert_alpha()
+			self.image = pg.transform.rotate(pg.transform.scale(pg.image.load(res_path("game pics/rover/TheRoverIdle.png")),(tales,tales)), self.direction).convert_alpha()
 
+	def pause_ability(self):
+		global GAME_STATE 
 
+		if now - self.last_pause_time > 200:
+			if pg.key.get_pressed()[pg.K_TAB] or pg.key.get_pressed()[pg.K_ESCAPE]: # pg.KEYDOWN is better
+				
+				self.last_pause_time = now
+
+				if GAME_STATE != "Pause":
+					GAME_STATE = "Pause"
+				
+				else:
+					GAME_STATE = "Main"
 
 		# add check for self.target | then do delays and shit.
 
@@ -549,8 +655,8 @@ player = Player(tales,tales,tales,tales,tales/8,"game pics/rover/TheRoverIdle.pn
 class InteractionObj(GameObject):
 	def __init__(self,name,dialogue, x, y, w, h, speed, image_route,line_lenght,int_mode,question,index = None, custom = False):
 		super().__init__(x, y, w, h, speed, image_route)
-		self.fontName = pg.font.SysFont("Comic Sans", 55)
-		self.fontTalk = pg.font.SysFont("Comic Sans", 55)
+		self.fontName = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+		self.fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
 		self.name = name
 		self.name_out=self.fontName.render(name, True, "white")
 		self.int_mode =int(int_mode)
@@ -640,8 +746,8 @@ class InteractionObj(GameObject):
 		dialog_menu([f"Do you want to use {item} x{amount}?"],40,"Rover",True)
 
 	def change(self,name,dialogue,image_route,line_lenght,int_mode,question,index = None,w = tales, h=tales):
-		self.fontName = pg.font.SysFont("Comic Sans", 55)
-		self.fontTalk = pg.font.SysFont("Comic Sans", 55)
+		self.fontName = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
+		self.fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 55)
 		self.name = name
 		self.name_out=self.fontName.render(name, True, "white")
 		self.int_mode =int(int_mode)
@@ -651,7 +757,7 @@ class InteractionObj(GameObject):
 		self.answer = None
 		self.index = index
 		self.image_route = image_route
-		self.image = pg.transform.scale(pg.image.load(image_route),(w,h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_route)),(w,h))
 
 class SmallInt():
 	def __init__(self, int_mode,image_route,imagebig_route,x,y, simple_pic = True ,index = None, w = 800, h = 600, layer = 0 ):
@@ -662,9 +768,9 @@ class SmallInt():
 		self.bigw = w
 		self.bigh = h
 		self.image_route = image_route
-		self.image1 = pg.transform.scale(pg.image.load(self.image_route),(self.w,self.h)).convert_alpha()
+		self.image1 = pg.transform.scale(pg.image.load(res_path(self.image_route)),(self.w,self.h)).convert_alpha()
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
+		self.imagebig = pg.transform.scale(pg.image.load(res_path(self.imagebig_route)),(self.bigw,self.bigh)).convert_alpha()
 		self.rect = self.image1.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -729,7 +835,7 @@ class SmallInt():
 	def new_imagebig(self,imagebig_route,w = 800,h = 600):
 
 		self.imagebig_route = imagebig_route
-		self.imagebig = pg.transform.scale(pg.image.load(self.imagebig_route),(self.bigw,self.bigh)).convert_alpha()
+		self.imagebig = pg.transform.scale(pg.image.load(res_path(self.imagebig_route)),(self.bigw,self.bigh)).convert_alpha()
 
 		self.bigw = w
 		self.bigh = h
@@ -746,7 +852,7 @@ class Item():
 		self.amount = 0
 		self.w = 50
 		self.h = 50
-		self.image = pg.transform.scale(pg.image.load(image_path), (self.w,self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_path)), (self.w,self.h))
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -769,7 +875,7 @@ class IntItem(Item):
 		self.used = 0
 		self.w = tales
 		self.h = tales
-		self.image = pg.transform.scale(pg.image.load(image_path), (self.w,self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(image_path)), (self.w,self.h))
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -800,8 +906,13 @@ class Inventory():
 		}
 
 		self.inventory_panel = [None] * 6
-		self.sound = pg.mixer.Sound("sounds/pick_up.wav")
-		self.sound.set_volume(volume_sfx)
+		self.sound = pg.mixer.Sound(res_path("sounds/pick_up.wav"))
+		self.sound.set_volume(0.2 * game.volume_sfx)
+
+	
+	def volume_update(self):
+
+		self.sound.set_volume(0.2 * game.volume_sfx)
 
 	def increase(self, name):
 		try:
@@ -828,6 +939,17 @@ class Inventory():
 			print(f"Item decreased: {self.inventory_panel}")
 		except KeyError:
 			print("decrease failure")
+
+	def item_set_amount(self, name, amount):
+		
+		try:
+			self.collectables[name].amount = amount
+
+			self.update_inventory()
+
+			print(f"Item amount set: {name , amount}")
+		except KeyError:
+			print("Item amount set failure")
 
 	def get_amount(self,name):
 		try:
@@ -857,7 +979,7 @@ class Inventory():
 		inv_screen.fill((0,0,0,0))
 
 		pg.draw.rect(inv_screen, "dark grey", (x-20, y-20, (side+20)*6 +20, side+40))
-		print_text(inv_screen,"Inventory","Comic Sans", 35, (side+20)*6/2-50, y-50)
+		print_text(inv_screen,"Inventory","fonts/Comic Sans MS.ttf", 35, (side+20)*6/2-50, y-50)
 
 		for cell in self.inventory_panel:
 			pg.draw.rect(inv_screen, (200, 215, 227), (x, y, side, side))
@@ -867,7 +989,7 @@ class Inventory():
 
 				if cell.amount > 1:
 
-					print_text(inv_screen,str(cell.amount), "Comic Sans" , 35 ,x+45 , y+40)
+					print_text(inv_screen,str(cell.amount), "fonts/Comic Sans MS.ttf" , 35 ,x+45 , y+40)
 
 				if cell.amount == 0:
 
@@ -877,30 +999,6 @@ class Inventory():
 
 		screen.blit(inv_screen,(0,0))
 
-	def inventory_cycle(self):
-		global last
-		if pg.key.get_pressed()[pg.K_TAB]:
-			inventory_show = True
-			while inventory_show:
-				for ev in pg.event.get():
-					if ev.type == pg.QUIT:
-						pg.quit()
-
-					inventory.draw_inventory()
-
-					#if pg.key.get_pressed()[pg.K_1]:
-					#    sleep(0.1)
-					#    inventory.increase("shovel")
-
-
-
-					if pg.key.get_pressed()[pg.K_ESCAPE] or pg.key.get_pressed()[pg.K_f]:
-						inventory_show = False
-
-
-					pg.display.flip()
-					clock.tick(30)
-
 inventory = Inventory()
 
 class ScreenCollectable():
@@ -909,7 +1007,7 @@ class ScreenCollectable():
 		self.w = w
 		self.h = h
 		self.image_route = image_route
-		self.image = pg.transform.scale(pg.image.load(self.image_route),(self.w, self.h))
+		self.image = pg.transform.scale(pg.image.load(res_path(self.image_route)),(self.w, self.h))
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
@@ -1040,7 +1138,7 @@ class Effect(GameObject): # a lot of thinking here | ebanina
 		if self.sizes_w[turn] == tales and self.sizes_h[turn] == tales or dont:
 			self.rect.x = self.init_x
 			self.rect.y = self.init_y
-			self.image = pg.transform.scale(pg.image.load(self.sprites[turn]),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
+			self.image = pg.transform.scale(pg.image.load(res_path(self.sprites[turn])),(self.sizes_w[turn],self.sizes_h[turn])).convert_alpha()
 			return
 		else:
 			# print(f"Effects | intit_x + tales/2 - size_w/2 | {self.init_x} + {tales/2} - {self.sizes_w[turn]/2} | turn = {turn}")
@@ -1066,7 +1164,7 @@ class PipefixMinigame():
 		self.patches = []
 
 		self.surface = pg.Surface((500,500))
-		self.background = pg.transform.scale(pg.image.load("game pics/pipehole.png"),(500,500))
+		self.background = pg.transform.scale(pg.image.load(res_path("game pics/pipehole.png")),(500,500))
 
 		self.hole = [(166,283),(246,283),(246,203),(190,203),(208,246)]
 		self.hole_points_covered = []
@@ -1210,7 +1308,7 @@ class PipefixMinigame():
 	def draw(self):
 		pg.draw.rect(screen,(15, 23, 42),(self.cordShiftX, self.cordShiftY-75, 500, 80),)
 
-		print_text(screen,"Hold LMB to patch up pipe","Comic Sans",36,self.cordShiftX+30, self.cordShiftY-60)
+		print_text(screen,"Hold LMB to patch up pipe","fonts/Comic Sans MS.ttf",36,self.cordShiftX+30, self.cordShiftY-60)
 
 		screen.blit(self.surface,(self.cordShiftX, self.cordShiftY))
 
@@ -1225,6 +1323,232 @@ class Sound():
 		
 		self.sound.play()
 		self.times_played += 1
+
+class Volume_slider():
+	def __init__(self, name:str, cords:tuple[int,int]):
+		self.sliderpos = 1
+		self.volume = 1
+
+		self.font = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"),55) # 120p to the right is preserved
+		self.name = name
+		self.namebox = self.font.render(name,1,"white")
+		self.name_width = self.namebox.get_width() +35
+
+		self.cords = cords
+		self.w, self.h = 300,100
+		self.mainSurface = pg.surface.Surface((self.w + self.name_width ,self.h),pg.SRCALPHA) 
+
+		self.slider_x_limits = (0, self.mainSurface.get_width()-25 - self.name_width)
+		self.slider = pg.Rect((self.slider_x_limits[1] * self.sliderpos), 0, 50,100)
+		self.slider_grabed = None
+	
+	def slider_grab(self):
+
+		x,y = align_mouse_pos(self.mainSurface, self.cords)
+		
+		if self.slider.collidepoint(x,y) and event_in_queue(pg.MOUSEBUTTONDOWN):
+			
+			self.slider_grabed = True
+
+		if self.slider_grabed:
+			
+			self.slider.x += game.mouse_displacement[0]
+			self.set_volume()
+			
+			if self.slider_x_limits[0] > self.slider.x:
+
+				self.slider.x = self.slider_x_limits[0]
+			
+			elif self.slider.x > self.slider_x_limits[1]:
+
+				self.slider.x = self.slider_x_limits[1]
+		
+		if event_in_queue(pg.MOUSEBUTTONUP):
+			
+			self.slider_grabed = False
+
+	def set_volume(self):
+
+		self.volume = round(self.slider.x/self.slider_x_limits[1] , 2) 		# Only works if self.slider_x_limits[0] is 0
+		self.sliderpos = self.volume
+		
+		print(f"Volume is: {self.volume}")		
+
+		map(music_vol_update=True)
+		player.volume_update()
+		inventory.volume_update()
+		
+		for sound in sounds:
+			sounds[sound].set_volume(self.volume)		
+
+	def draw(self):
+
+		bar_filled = None
+		bar_empty = None
+
+		
+		if self.slider.x > 25:
+			
+			bar_filled = pg.Rect(25, self.slider.centery - self.slider.h/4, self.slider.x, self.slider.h/2)
+
+		if self.slider.x < self.mainSurface.get_width() - 120:
+
+			bar_empty = pg.Rect(self.slider.right, self.slider.centery - self.slider.h/4, self.mainSurface.get_width() - self.name_width - self.slider.right, self.slider.h/2)
+
+
+		self.mainSurface.fill((0,0,0,0))
+
+		if bar_empty != None:
+			pg.draw.rect(self.mainSurface,"gray",bar_empty)
+		
+			# print(f"VolSlider| Empty bar: {bar_empty.topleft,bar_empty.w,bar_empty.h}")
+		
+		if bar_filled != None:
+			pg.draw.rect(self.mainSurface, "blue", bar_filled)
+		
+			# print(f"VolSlider| Filled bar: {bar_filled.topleft,bar_filled.w,bar_filled.h}")
+			
+		pg.draw.rect(self.mainSurface, "red" ,self.slider)
+
+		self.mainSurface.blit(self.namebox, (self.w + 25 ,10))
+
+		screen.blit(self.mainSurface, self.cords)
+
+volume_slider = Volume_slider("VOL", (40,170)) #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+class Button():
+	def __init__(self,x,y,w,h,text, function, color, text_color, pointed_color, pressed_color = "green", pressed_msg = None, pressed_timer = 1000):
+		
+		self.rect = pg.rect.Rect(x,y,w,h)
+		self.color = color
+
+		self.pointed = False
+		self.pointed_color = pointed_color
+
+		self.pressed = False
+		self.pressed_color = pressed_color
+		self.pressed_msg = pressed_msg
+		self.pressed_timer = pressed_timer
+		self.last_pressed = 0
+
+		self.text_color= text_color
+		self.font= pg.font.Font(res_path("fonts/Comic Sans MS.ttf"),45)
+		self.text= self.font.render(text, True, text_color)
+		self.pressed_text = self.font.render(self.pressed_msg, True, text_color)
+
+		self.function = function
+
+	def check_status(self):
+
+		mouse = pg.mouse.get_pos()
+		now = pg.time.get_ticks()
+
+		if self.rect.collidepoint(mouse[0], mouse[1]):
+
+			self.pointed = True		
+		
+		else:
+			self.pointed = False
+
+		
+		if self.last_pressed and now - self.last_pressed <= self.pressed_timer:
+			self.pressed = True
+		else:		
+			self.pressed = False
+
+	def check_clicked(self):
+		now = pg.time.get_ticks()
+
+		if self.pointed and event_in_queue(pg.MOUSEBUTTONDOWN):
+
+			self.function()
+			self.last_pressed = now
+
+	def work(self):
+
+		self.check_status()
+		self.check_clicked()
+
+		if not self.pointed and not self.pressed: 
+			pg.draw.rect(screen,self.color,self.rect)
+		elif self.pressed and self.pressed_color: 
+			pg.draw.rect(screen, self.pressed_color,self.rect)
+		else:
+			pg.draw.rect(screen, self.pointed_color, self.rect)
+
+		if not self.pressed:
+			screen.blit(self.text, (self.rect.x, self.rect.y-10)) # text
+		elif self.pressed_text:
+			screen.blit(self.pressed_text,(self.rect.x, self.rect.y-10))
+
+class SwitchButton():
+	def __init__(self,x,y,w,h, game_parametr_name, text, color_text = "white", color_true = "green", color_false = "red", color_slider = "blue"):
+		self.rect = pg.rect.Rect(x,y,w,h)
+		self.rect.x = x
+		self.rect.y = y
+
+		self.game_parametr_name = game_parametr_name
+		self.game_parametr = getattr(game, game_parametr_name)
+
+		self.slider = pg.rect.Rect(x,y,w/4,h)
+		if self.game_parametr:
+			self.slider.x = x+(w - w/4)
+		else:
+			self.slider.x = x
+
+		self.pos_bar = pg.rect.Rect(x, y+(h/4), self.slider.x - x, h/2)
+		self.neg_bar = pg.rect.Rect(self.slider.right, y+(h/4), w - self.slider.right, h/2)
+
+		self.color_slider = color_slider
+		self.color_text = color_text
+		self.color_true = color_true
+		self.color_false = color_false
+		
+		self.font = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"),45)
+		if text:
+			self.text = self.font.render(text, True, self.color_text)
+			self.text_rect = self.text.get_rect(midleft = (self.rect.midright))
+		else:
+			self.text, self.text_rect = None, None
+
+		self.last_press = 0
+		self.cooldown = 200
+	
+	def update(self):
+		
+		mouse = pg.mouse.get_pos()
+		now = pg.time.get_ticks()
+
+		if event_in_queue(pg.MOUSEBUTTONDOWN) and now - self.last_press > self.cooldown and self.rect.collidepoint(*mouse):
+			self.last_press = now
+			
+			self.game_parametr = not self.game_parametr
+
+			setattr(game, self.game_parametr_name, self.game_parametr)
+
+		if self.game_parametr:
+			self.slider.x = self.rect.x+(self.rect.w - self.rect.w/4)
+		else:
+			self.slider.x = self.rect.x
+
+		self.pos_bar = pg.rect.Rect(self.rect.x, self.rect.y+(self.rect.h/4), self.slider.x - self.rect.x, self.rect.h/2)
+		self.neg_bar = pg.rect.Rect(self.slider.right, self.rect.y+(self.rect.h/4), self.rect.w - (self.slider.right - self.rect.x+1), self.rect.h/2) # late night coding
+
+	def draw(self):
+
+		pg.draw.rect(screen, self.color_slider, self.slider)
+		pg.draw.rect(screen, self.color_true, self.pos_bar)
+		pg.draw.rect(screen, self.color_false, self.neg_bar)
+
+		if self.text:
+			screen.blit(self.text, self.text_rect)
+
+# Buttons:
+
+save_button = Button(675,50,140,50,"Save",game.create_save,(0,150,255),"white",(75,75,150),pressed_msg="DONE")
+load_button = Button(205,370,100,50, "Load", game.load_save,(18,53,36),"white",(133,169,71))
+
+save_switch = SwitchButton(50,50,100,80,"enable_saves","Enable Saves *buggy*")
 
 # endregion Damn CLASSES
 
@@ -1406,7 +1730,7 @@ final_appartment = [
 # region Objects init
 
 levels = [karta1,chupep,appartment,appartment_1,basement_stasa,basement_yura,final_appartment]
-startLevel = 2
+startLevel = 0
 choosenLevel = levels[startLevel]
 # print("CL =",startLevel)
 effects = []
@@ -1423,22 +1747,97 @@ playing_music = None
 
 pipefix = PipefixMinigame()
 
-map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales)).convert()
-map_chupep_low = pg.transform.scale(pg.image.load("game pics/chupep_down.png"),screen.get_size()).convert()
-map_chupep_up = pg.transform.scale(pg.image.load("game pics/chupep_up.png"),screen.get_size()).convert_alpha()
-map_stas_low = pg.transform.scale(pg.image.load("game pics/karta_stasa_low.png"),(45*25,45*25)).convert()
-map_stas_up = pg.transform.scale(pg.image.load("game pics/karta_stasa_up.png"),(45*25,45*25)).convert_alpha()
-map_yura_low = pg.transform.scale(pg.image.load("game pics/basement_yura_low.png"),(60*20,60*14)).convert()
-map_yura_up = pg.transform.scale(pg.image.load("game pics/basement_yura_up.png"),(60*20,60*14)).convert_alpha()
+map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales)).convert()
+map_chupep_low = pg.transform.scale(pg.image.load(res_path("game pics/chupep_down.png")),screen.get_size()).convert()
+map_chupep_up = pg.transform.scale(pg.image.load(res_path("game pics/chupep_up.png")),screen.get_size()).convert_alpha()
+map_stas_low = pg.transform.scale(pg.image.load(res_path("game pics/karta_stasa_low.png")),(45*25,45*25)).convert()
+map_stas_up = pg.transform.scale(pg.image.load(res_path("game pics/karta_stasa_up.png")),(45*25,45*25)).convert_alpha()
+map_yura_low = pg.transform.scale(pg.image.load(res_path("game pics/basement_yura_low.png")),(60*20,60*14)).convert()
+map_yura_up = pg.transform.scale(pg.image.load(res_path("game pics/basement_yura_up.png")),(60*20,60*14)).convert_alpha()
 
 togo_levels = None
 
 # endregion Objects init aaaaaaaaaaaaaaa
 
-def map(down = None, up = None):
+def map(down = None, up = None, music_vol_update = None):
 	global tales, screen, map_app, playing_music
+				
 
-	if down == None and up == None:
+	if down != None:
+		# Fixes the bug with player model on appartment map
+
+		if choosenLevel == appartment or choosenLevel == appartment_1 or choosenLevel == final_appartment:
+
+			# print("map | kostil found")
+			screen.blit(map_app,(0,0,12*tales,11*tales))
+
+		elif choosenLevel == chupep:
+
+			screen.blit(map_chupep_low,(0,0,screen.get_width(),screen.get_height()))
+
+		elif choosenLevel == basement_stasa:
+
+			screen.blit(map_stas_low,(0,0,screen.get_width(),screen.get_height()))
+
+		elif choosenLevel == basement_yura:
+
+			screen.blit(map_yura_low,(0,0,screen.get_width(),screen.get_height()))
+
+		for w in walls:
+			if w.image_route != "game pics/nothing.png" and w.layer == 0:
+				w.reset()
+		for obj in intObj:
+			if obj.image_route != "game pics/nothing.png" and obj.layer == 0:
+				obj.reset()
+		for smol in smallInt:
+			if smol.image_route != "game pics/nothing.png" and smol.layer == 0:
+				smol.reset()
+		for effect in effects:
+			if effect.image != None and effect.layer == 0:
+				effect.reset()
+		for f in floor:
+			if f.layer == 0:
+				f.reset()
+
+	# print(f"level1progress = {level1progress}")
+
+	elif up != None:
+		
+		if choosenLevel == chupep:
+
+			screen.blit(map_chupep_up,(0,0,screen.get_width(),screen.get_height()))
+
+		elif choosenLevel == basement_yura:
+
+			screen.blit(map_yura_up,(0,0,screen.get_width(),screen.get_height()))
+
+		elif choosenLevel == basement_stasa:
+
+			screen.blit(map_stas_up,(0,0,45*25,45*25))
+
+		for w in walls:
+			if w.image_route != "game pics/nothing.png" and w.layer == 1:
+				w.reset()
+		for obj in intObj:
+			if obj.image_route != "game pics/nothing.png" and obj.layer == 1:
+				obj.reset()
+		for smol in smallInt:
+			if smol.image_route != "game pics/nothing.png" and smol.layer == 1:
+				smol.reset()
+		for effect in effects:
+			if effect.image != None and effect.layer == 1:
+				effect.reset()
+		for f in floor:
+			if f.layer == 1:
+				f.reset()
+
+				# KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
+
+	elif music_vol_update != None:
+
+		pg.mixer.music.set_volume(game.volume_music)
+
+	else:
 		print ("**| map |**")
 		if choosenLevel == karta:
 			print ("map | CL = karta")
@@ -1459,14 +1858,14 @@ def map(down = None, up = None):
 		if choosenLevel == karta1:
 			player.target = None
 			player.set_direction(90)
-			player.rect.x , player.rect.y =(tales*16,tales*21)
+			player.rect.x , player.rect.y = (tales*16,tales*21)
 
 			print ("map | CL = karta1")
 
-			music["rain"] = pg.mixer.music.load("sounds/rain.wav")
+			music["rain"] = pg.mixer.music.load(res_path("sounds/rain.wav"))
 			pg.mixer.music.play(-1)
 
-			sounds["shovel"] = pg.mixer.Sound("sounds/shovel.wav")
+			sounds["shovel"] = pg.mixer.Sound(res_path("sounds/shovel.wav"))
 
 			effects.append(Effect(0,0,screen.get_width(),screen.get_height(),1,["anim/rain1.png","anim/rain2.png"],[screen.get_width(),screen.get_width()],[screen.get_height(),screen.get_height()],"rain",1))
 
@@ -1515,7 +1914,7 @@ def map(down = None, up = None):
 					if karta1[i][g]=="9":
 						walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/stinka.png"))
 					if karta1[i][g]=="i":
-						item.append(IntItem("shovel","game pics/Shovel_floor.png",g*tales,i*tales,1,1,1,"shovel"))
+						item.append(IntItem("shovel","game pics/shovel_floor.png",g*tales,i*tales,1,1,1,"shovel"))
 					if karta1[i][g]=="9":
 						walls.append(GameObject(g*tales,i*tales,tales,tales,0,"game pics/stinka.png"))
 					if karta1[i][g]=="m":
@@ -1576,18 +1975,18 @@ def map(down = None, up = None):
 
 			tales = 80
 			screen = pg.display.set_mode((tales*12,tales*11))
-			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
+			map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales))
 
 			player.target = None
 			# player.rect.x , player.rect.y =(tales, tales*2)
 			player.__init__(tales,tales*2,tales,tales,tales/10,"game pics/avatar.png")
 
 			pg.mixer.music.unload()
-			pg.mixer.music.load("sounds/cipher.mp3")
-			pg.mixer.music.set_volume(0.1)
+			pg.mixer.music.load(res_path("sounds/cipher.mp3"))
+			pg.mixer.music.set_volume(0.1 * game.volume_music)
 			pg.mixer.music.play(-1)
 
-			sounds["fridge"] = pg.mixer.Sound("sounds/fridge.mp3")
+			sounds["fridge"] = pg.mixer.Sound(res_path("sounds/fridge.mp3"))
 
 			print("map | CL = appartment")
 			screen.blit(map_app,(0,0,12*tales,11*tales))
@@ -1629,7 +2028,7 @@ def map(down = None, up = None):
 
 			tales = 80
 			screen = pg.display.set_mode((tales*12,tales*11))
-			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
+			map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales))
 
 			player.target = None
 
@@ -1685,8 +2084,8 @@ def map(down = None, up = None):
 				player.set_direction(0)
 
 				pg.mixer.music.unload()
-				pg.mixer.music.load("sounds/basement.mp3")
-				pg.mixer.music.set_volume(0.5)
+				pg.mixer.music.load(res_path("sounds/basement.mp3"))
+				pg.mixer.music.set_volume(0.5 * game.volume_music)
 				pg.mixer.music.play(-1)
 
 			player.allowed_exits = [False,False,False,True]
@@ -1698,7 +2097,7 @@ def map(down = None, up = None):
 
 			screen.blit(map_stas_low,(0,0,tales*25,tales*25))
 
-			sounds["door"] = pg.mixer.Sound("sounds/door.mp3")
+			sounds["door"] = pg.mixer.Sound(res_path("sounds/door.mp3"))
 
 			for i in range(len(basement_stasa)):
 				for g in range(len(basement_stasa[i])):
@@ -1742,9 +2141,9 @@ def map(down = None, up = None):
 
 			print (f"togo_levels during map = {togo_levels}")
 
-			sounds["boom"] = pg.mixer.Sound("sounds/explosion.ogg")
-			sounds["boom"].set_volume(0.5)
-			sounds["lever"] = pg.mixer.Sound("sounds/light_switch.mp3")
+			sounds["boom"] = pg.mixer.Sound(res_path("sounds/explosion.ogg"))
+			sounds["boom"].set_volume(0.5 * game.volume_sfx)
+			sounds["lever"] = pg.mixer.Sound(res_path("sounds/light_switch.mp3"))
 
 			for i in range(len(basement_yura)):
 				for g in range(len(basement_yura[i])):
@@ -1784,7 +2183,7 @@ def map(down = None, up = None):
 
 			tales = 80
 			screen = pg.display.set_mode((tales*12,tales*11))
-			map_app = pg.transform.scale(pg.image.load("game pics/appartment_map.png"),(12*tales,11*tales))
+			map_app = pg.transform.scale(pg.image.load(res_path("game pics/appartment_map.png")),(12*tales,11*tales))
 
 			player.target = None
 			player.__init__(tales,tales*2,tales,tales,tales/10,player.image_route)
@@ -1794,8 +2193,8 @@ def map(down = None, up = None):
 			screen.blit(map_app,(0,0,12*tales,11*tales))
 
 			pg.mixer.music.unload()
-			pg.mixer.music.load("sounds/cipher.mp3")
-			pg.mixer.music.set_volume(0.1)
+			pg.mixer.music.load(res_path("sounds/cipher.mp3"))
+			pg.mixer.music.set_volume(0.1 * game.volume_music)
 			pg.mixer.music.play(-1)
 
 			for i in range(len(final_appartment)):
@@ -1831,79 +2230,7 @@ def map(down = None, up = None):
 							intObj.append(InteractionObj("Rover",["Make tea?"],g*tales,i*tales,tales,tales,0,"game pics/nothing.png",30,3,True, "tea"))
 						else:
 							walls.append(Wall(g*tales,i*tales,tales,tales,0,"game pics/nothing.png",0))
-					
-
-	if down != None:
-		# Fixes the bug with player model on appartment map
-
-		if choosenLevel == appartment or choosenLevel == appartment_1 or choosenLevel == final_appartment:
-
-			# print("map | kostil found")
-			screen.blit(map_app,(0,0,12*tales,11*tales))
-
-		elif choosenLevel == chupep:
-
-			screen.blit(map_chupep_low,(0,0,screen.get_width(),screen.get_height()))
-
-		elif choosenLevel == basement_stasa:
-
-			screen.blit(map_stas_low,(0,0,screen.get_width(),screen.get_height()))
-
-		elif choosenLevel == basement_yura:
-
-			screen.blit(map_yura_low,(0,0,screen.get_width(),screen.get_height()))
-
-		for w in walls:
-			if w.image_route != "game pics/nothing.png" and w.layer == 0:
-				w.reset()
-		for obj in intObj:
-			if obj.image_route != "game pics/nothing.png" and obj.layer == 0:
-				obj.reset()
-		for smol in smallInt:
-			if smol.image_route != "game pics/nothing.png" and smol.layer == 0:
-				smol.reset()
-		for effect in effects:
-			if effect.image != None and effect.layer == 0:
-				effect.reset()
-		for f in floor:
-			if f.layer == 0:
-				f.reset()
-
-	# print(f"level1progress = {level1progress}")
-
-	if up != None:
-		
-		if choosenLevel == chupep:
-
-			screen.blit(map_chupep_up,(0,0,screen.get_width(),screen.get_height()))
-
-		elif choosenLevel == basement_yura:
-
-			screen.blit(map_yura_up,(0,0,screen.get_width(),screen.get_height()))
-
-		elif choosenLevel == basement_stasa:
-
-			screen.blit(map_stas_up,(0,0,45*25,45*25))
-
-		for w in walls:
-			if w.image_route != "game pics/nothing.png" and w.layer == 1:
-				w.reset()
-		for obj in intObj:
-			if obj.image_route != "game pics/nothing.png" and obj.layer == 1:
-				obj.reset()
-		for smol in smallInt:
-			if smol.image_route != "game pics/nothing.png" and smol.layer == 1:
-				smol.reset()
-		for effect in effects:
-			if effect.image != None and effect.layer == 1:
-				effect.reset()
-		for f in floor:
-			if f.layer == 1:
-				f.reset()
-
-				# KARTI VRUCNUYU PISAT | POTOMUChTO DAUN
-
-
+	
 #player = Player(tales,tales,tales,tales,tales,"rover.png")
 
 def clear_map():
@@ -2056,92 +2383,87 @@ def travel(name = None,dialogue = None, record=True ,jump_over = 0 )->bool: #tra
 			if player.rect.x < 0:
 				player.rect.x += tales
 
-			return False
+			return False		
 
+class Menu():
+	def __init__(self):
 
-class Button():
-	def __innit__(self,x,y,w,h,text,color,font,fontSize):
-		self.rect.x = x
-		self.rect.y = y
-		self.w = screen.get_width()
-		self.h = screen.get_height()
-		self.color= (color)
-		self.font=pg.font.SysFont(font,fontSize)
-		self.text= font.render(text, True, color)
-		pass
+		self.controls_show = False
+		self.menu_bgr=pg.image.load(res_path("game pics/menu.png"))
+		self.controls_pic = pg.image.load(res_path("game pics/Controls.png"))
+		self.font=pg.font.Font(res_path('fonts/Comic Sans MS.ttf'), 55)
+		self.color_text=(255,255,255)
+		self.t_quit = self.font.render('Quit', True , self.color_text)
+		self.t_start = self.font.render('Start', True , self.color_text)
+		self.t_controls = self.font.render('Controls', True, self.color_text)
+		self.t_quit.get_rect()
+		self.w=screen.get_width()
+		self.h=screen.get_height()
+		self.menuShow = True
 
-def menu():
-	global controls_show
-	menu_bgr=pg.image.load("game pics/menu.png")
-	controls_pic = pg.image.load("game pics/Controls.png")
-	font=pg.font.SysFont('Comic Sans', 55)
-	color_text=(255,255,255)
-	t_quit = font.render('Quit', True , color_text)
-	t_start = font.render('Start', True , color_text)
-	t_controls = font.render('Controls', True, color_text)
-	t_quit.get_rect()
-	w=screen.get_width()
-	h=screen.get_height()
+	def show(self):
+		if not self.menuShow:
+			return
 
-	menuShow=True
-	while menuShow:
-		for event in pg.event.get():
-			if event.type == pg.QUIT:
-				pg.quit()
-
-		screen.blit(menu_bgr, (0,0))
+		screen.blit(self.menu_bgr, (0,0))
 		# screen.fill((62,123,39))
+		
 		mouse=pg.mouse.get_pos()
+
+		if self.controls_show:
+
+			if event_in_queue(pg.MOUSEBUTTONDOWN):
+				if self.w*0.3 + 560 <= mouse[0] <= self.w*0.3 + 579 and self.h*0.3 + 2 <= mouse[1] <= self.h*0.3 + 22:
+					self.controls_show = False
+
+			screen.blit(self.controls_pic,(self.w*0.3,self.h*0.3))
+
+			return
+
+		if game.enable_saves:
+			load_button.work()
+			
+			if load_button.pressed:
+				self.menuShow = False
+			
+		
 		# Check where mouse was presseed
-		if event.type == pg.MOUSEBUTTONDOWN:
-			if w*0.16 - 70 <= mouse[0] <= w*0.16 + 30 and h/2 + 150 <= mouse[1] <= h/2 + 190:
+		if event_in_queue(pg.MOUSEBUTTONDOWN):
+			if self.w*0.16 - 70 <= mouse[0] <= self.w*0.16 + 30 and self.h/2 + 150 <= mouse[1] <= self.h/2 + 190:
 				pg.quit()
-			if w*0.16 - 75 <= mouse[0] <= w*0.16 +75 and h/2 -50 <= mouse[1] <= h/2 + 10:
-				menuShow= False
-			if w*0.16 - 110 <= mouse[0] <= w*0.16 +115 and h/2 +50 <= mouse[1] <= h/2 + 110:
-				controls_show = True
+			if self.w*0.16 - 75 <= mouse[0] <= self.w*0.16 +75 and self.h/2 -50 <= mouse[1] <= self.h/2 + 10:
+				self.menuShow= False
+			if self.w*0.16 - 110 <= mouse[0] <= self.w*0.16 +115 and self.h/2 +50 <= mouse[1] <= self.h/2 + 110:
+				self.controls_show = True
 
 			# Making Controls thing able to close
-			while controls_show:
-				for event in pg.event.get():
-					mouse=pg.mouse.get_pos()
+			
 
-					if event.type == pg.QUIT:
-						pg.quit()
-					if event.type == pg.MOUSEBUTTONDOWN:
-						if w*0.3 + 560 <= mouse[0] <= w*0.3 + 579 and h*0.3 + 2 <= mouse[1] <= h*0.3 + 22:
-							controls_show = False
-
-				screen.blit(controls_pic,(w*0.3,h*0.3))
-
-				pg.display.flip()
-				clock.tick(30)
 
 		# Check where mouse is pointing, if mouse on button or not
-		if w*0.16 - 70 <= mouse[0] <= w*0.16 + 60 and h/2 + 150 <= mouse[1] <= h/2 + 210:
-			pg.draw.rect(screen, (133,169,71), [w*0.16 - 70,h/2 + 150,130,60])
+		if self.w*0.16 - 70 <= mouse[0] <= self.w*0.16 + 60 and self.h/2 + 150 <= mouse[1] <= self.h/2 + 210:
+			pg.draw.rect(screen, (133,169,71), [self.w*0.16 - 70,self.h/2 + 150,130,60])
 
 		else:
-			pg.draw.rect(screen,(18,53,36), [w*0.16 - 70,h/2 + 150,130,60])
+			pg.draw.rect(screen,(18,53,36), [self.w*0.16 - 70,self.h/2 + 150,130,60])
 
-		if w*0.16 - 75 <= mouse[0] <= w*0.16 +75 and h/2 -50 <= mouse[1] <= h/2 + 10:
-			pg.draw.rect(screen, (133, 169, 71), [w*0.16 - 75, h/2 - 50, 150,60])
-
-		else:
-			pg.draw.rect(screen, (18,53,36), [w*0.16 - 75, h/2 - 50, 150,60])
-
-		if w*0.16 - 110 <= mouse[0] <= w*0.16 +115 and h/2 +50 <= mouse[1] <= h/2 + 110:
-			pg.draw.rect(screen, (133, 169, 71), [w*0.16 - 110, h/2 + 50, 225,60])
+		if self.w*0.16 - 75 <= mouse[0] <= self.w*0.16 +75 and self.h/2 -50 <= mouse[1] <= self.h/2 + 10:
+			pg.draw.rect(screen, (133, 169, 71), [self.w*0.16 - 75, self.h/2 - 50, 150,60])
 
 		else:
-			pg.draw.rect(screen, (18,53,36), [w*0.16 - 110, h/2 + 50, 225,60])
+			pg.draw.rect(screen, (18,53,36), [self.w*0.16 - 75, self.h/2 - 50, 150,60])
 
-		screen.blit(t_quit, (w*0.16 - 65, h/2 + 140))
-		screen.blit(t_start, (w*0.16 - 70, h/2 - 60))
-		screen.blit(t_controls,(w*0.16 - 105, h/2 + 40))
+		if self.w*0.16 - 110 <= mouse[0] <= self.w*0.16 +115 and self.h/2 +50 <= mouse[1] <= self.h/2 + 110:
+			pg.draw.rect(screen, (133, 169, 71), [self.w*0.16 - 110, self.h/2 + 50, 225,60])
 
-		pg.display.flip()
-		clock.tick(30)
+		else:
+			pg.draw.rect(screen, (18,53,36), [self.w*0.16 - 110, self.h/2 + 50, 225,60])
+
+		screen.blit(self.t_quit, (self.w*0.16 - 65, self.h/2 + 140))
+		screen.blit(self.t_start, (self.w*0.16 - 70, self.h/2 - 60))
+		screen.blit(self.t_controls,(self.w*0.16 - 105, self.h/2 + 40))
+
+menu = Menu()
 
 def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,line_lenght = 20):
 	alpha_surface = pg.Surface((w, h),pg.SRCALPHA)  #Making surface that able to be transparent
@@ -2184,7 +2506,7 @@ def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,li
 
 		# print("hint_menu | strings =", strings)
 
-	fontTalk = pg.font.SysFont("Comic Sans", 32)
+	fontTalk = pg.font.Font(res_path("fonts/Comic Sans MS.ttf"), 32)
 
 	line1=fontTalk.render(strings[0], True, "white") # What is person saying
 	if len(strings)>1:
@@ -2215,7 +2537,7 @@ def hint_menu(dialogue,w = screen.get_width(),h = screen.get_height(),x=0,y=0,li
 def fps_show():
 	fps = round(clock.get_fps(),1)
 	fps_lenght = 150
-	print_text(screen,f"FPS: {fps}", "Comic Sans",24,screen.get_width() - fps_lenght,0)
+	print_text(screen,f"FPS: {fps}", "fonts/Comic Sans MS.ttf",24,screen.get_width() - fps_lenght,0)
 
 def screencollectables_cycle(name = None,activate = None):
 	
@@ -2234,13 +2556,17 @@ def screencollectables_cycle(name = None,activate = None):
 				screenCollectables.remove(collectable)
 
 
+
+
+
+
 # initializing something for map_blit():
 
 lastlevel = None   # We already have player.last_level but this thing here to initialize things at the start of each level.
 
 event_queue = None
 
-
+Chickibamboni=pg.transform.scale(pg.image.load(res_path("game pics/CHIKIBAMBONI.png")),(80*12,80*11))
 
 def map_blit(floor_only = None):
 	global level1progress , happened , lastlevel, GAME_STATE, minigame
@@ -2798,9 +3124,9 @@ def map_blit(floor_only = None):
 
 						screen.blit(smol.imagebig,(smol.leftTop[0], smol.leftTop[1])) # bliting the lock
 
-						print_text(screen,str(num1), "Comic Sans", 80, 320,600,"black")
-						print_text(screen,str(num2), "Comic Sans", 80, 480,600,"black")
-						print_text(screen,str(num3), "Comic Sans", 80, 640,600,"black")
+						print_text(screen,str(num1), "fonts/Comic Sans MS.ttf", 80, 320,600,"black")
+						print_text(screen,str(num2), "fonts/Comic Sans MS.ttf", 80, 480,600,"black")
+						print_text(screen,str(num3), "fonts/Comic Sans MS.ttf", 80, 640,600,"black")
 
 						for event in pg.event.get(): # Cycles man
 							if event.type == pg.QUIT:
@@ -2989,8 +3315,6 @@ minigame = None
 
 exitzone = Exit_zone(tales*16,tales*21,tales*2,tales)
 
-menu()
-map()
 running=True
 while running:
 	events = pg.event.get()
@@ -3003,9 +3327,10 @@ while running:
 			running = False
 
 	mouse = pg.mouse.get_pos()
-	now = pg.time.get_ticks() #Current time number
+	now = pg.time.get_ticks() 
 
-	# print(f"Current GAME_STATE: {GAME_STATE}")
+	game.update()
+	
 
 	if GAME_STATE == "Main":
 
@@ -3017,10 +3342,45 @@ while running:
 		map(up = True)
 
 		player.controls()
-
-		inventory.inventory_cycle()
+		player.pause_ability()
 
 		# fps_show()
+
+	elif GAME_STATE == "Menu":
+
+		menu.show()
+
+		save_switch.update()
+		save_switch.draw()
+
+		if not menu.menuShow:
+
+			GAME_STATE = "Main"
+
+			map()
+
+	elif GAME_STATE == "Pause":
+
+		map_blit()
+
+		player.reset()
+
+		map(up = True)
+
+		player.pause_ability()
+		
+
+		inventory.draw_inventory()
+
+		if game.enable_saves:
+			save_button.work()
+
+		volume_slider.slider_grab()
+		
+		game.volume_sfx = volume_slider.volume
+		game.volume_music = volume_slider.volume
+		
+		volume_slider.draw()
 
 	elif GAME_STATE == "Minigame":
 		
@@ -3035,45 +3395,53 @@ while running:
 
 		screen.blit(Chickibamboni,(0,0))
 
-	if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
+	else:
+		print("WRONG GAME_STATE!!")
+		pg.quit()
 
-		if level1progress == 0:
-			hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
-		if inventory.get_amount("shovel") >= 1 and happened == False:    # Pomoemu eto HALTURA | da pohui
-			level1progress += 1
-			happened = True
 
-		if 3 > level1progress >=1:
-			hint_menu(["Now when I have a shovel I can bury that grave."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
-			# happened = False
+	fps_show()
 
-		if level1progress == 3:
-			hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/6)
+	if GAME_STATE == "Main":
+		if choosenLevel == karta1:   # SCRIPT FOR LEVEL1
 
-	if choosenLevel == appartment:
+			if level1progress == 0:
+				hint_menu(["I need to bury a grave, shovel should be somewhere on graveyard."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
+			if inventory.get_amount("shovel") >= 1 and happened == False:    # Pomoemu eto HALTURA | da pohui
+				level1progress += 1
+				happened = True
 
-		if level1progress == 0:
-			hint_menu(["You feel sleepy."],tales*8,tales,tales*2,0,40)
+			if 3 > level1progress >=1:
+				hint_menu(["Now when I have a shovel I can bury that grave."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
+				# happened = False
 
-	if choosenLevel == appartment_1:
+			if level1progress == 3:
+				hint_menu(["Now I need to get out of here."],w=screen.get_width()/5,h=screen.get_height()/3,x=0,y=screen.get_height()/4 + 25)
 
-		if level1progress == 0:
-			hint_menu(["I need to brush my teeth."],tales*8,tales,tales*2,0,40)
+		if choosenLevel == appartment:
 
-		if level1progress >= 1:
-			hint_menu(["I should go check basement."],tales*8,tales,tales*2,0,40)
+			if level1progress == 0:
+				hint_menu(["You feel sleepy."],tales*8,tales,tales*2,0,40)
 
-	if choosenLevel == basement_stasa and pipefix.completed:
+		if choosenLevel == appartment_1:
 
-		exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
+			if level1progress == 0:
+				hint_menu(["I need to brush my teeth."],tales*8,tales,tales*2,0,40)
 
-		if player.rect.colliderect(exit_stas.rect):
-			if travel("Rover", ["Wanna leave?"],jump_over=1) == False:
-				player.rect.y -= tales
+			if level1progress >= 1:
+				hint_menu(["I should go check basement."],tales*8,tales,tales*2,0,40)
 
-	if choosenLevel == final_appartment and GAME_STATE == "Main":
+		if choosenLevel == basement_stasa and pipefix.completed:
 
-		hint_menu(["I wanna take a bath."],tales*8,tales,tales*2,0,40)
+			exit_stas =Exit_zone(10*tales,24*tales,2*tales,tales)
+
+			if player.rect.colliderect(exit_stas.rect):
+				if travel("Rover", ["Wanna leave?"],jump_over=1) == False:
+					player.rect.y -= tales
+
+		if choosenLevel == final_appartment and GAME_STATE == "Main":
+
+			hint_menu(["I wanna take a bath."],tales*8,tales,tales*2,0,40)
 
 
 #Put the game before this line
